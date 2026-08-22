@@ -1,11 +1,26 @@
-import { FileText, FolderOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ClipboardPaste, FileText, FolderOpen } from 'lucide-react'
 
 interface EmptyStateProps {
   isDragging: boolean
   onOpenFile: () => void
+  onPaste: () => Promise<boolean>
 }
 
-export function EmptyState({ isDragging, onOpenFile }: EmptyStateProps) {
+export function EmptyState({ isDragging, onOpenFile, onPaste }: EmptyStateProps) {
+  const [hint, setHint] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!hint) return
+    const timer = window.setTimeout(() => setHint(null), 4000)
+    return () => window.clearTimeout(timer)
+  }, [hint])
+
+  const handlePaste = async () => {
+    const ok = await onPaste()
+    if (!ok) setHint('Clipboard unavailable — press Ctrl/Cmd + V to paste.')
+  }
+
   return (
     <div className="flex flex-1 items-center justify-center p-6">
       <div
@@ -30,6 +45,20 @@ export function EmptyState({ isDragging, onOpenFile }: EmptyStateProps) {
           <FolderOpen className="h-4 w-4" />
           Open a .md file
         </button>
+        <p className="mt-1 text-xs text-ink-muted dark:text-dark-ink-muted">or</p>
+        <button
+          type="button"
+          onClick={handlePaste}
+          className="mt-4 inline-flex items-center gap-2 rounded-md border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition-colors hover:border-accent hover:text-accent dark:border-dark-line dark:bg-dark-surface-soft dark:text-dark-ink dark:hover:border-dark-accent dark:hover:text-dark-accent"
+        >
+          <ClipboardPaste className="h-4 w-4" />
+          Paste Markdown
+        </button>
+        {hint && (
+          <p role="status" className="mt-3 text-xs text-accent dark:text-dark-accent">
+            {hint}
+          </p>
+        )}
         <p className="mt-6 text-xs text-ink-muted dark:text-dark-ink-muted">
           Supports .md and .markdown files — everything stays in your browser.
         </p>

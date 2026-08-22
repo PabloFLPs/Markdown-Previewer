@@ -8,11 +8,11 @@ interface MarkdownPreviewProps {
 
 export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   return (
-    <main className="markdown-body mx-auto w-full max-w-[900px] flex-1 overflow-y-auto px-6 py-10">
+    <div className="markdown-body mx-auto w-full max-w-[900px] px-6 py-10">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>
-    </main>
+    </div>
   )
 }
 
