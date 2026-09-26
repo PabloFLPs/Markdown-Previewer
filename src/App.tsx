@@ -14,9 +14,18 @@ import {
   fallbackFilename,
   openFilePicker,
 } from './lib/file'
-import { loadSplitRatio, saveSplitRatio } from './lib/storage'
+import { loadAssistMode, loadSplitRatio, saveAssistMode, saveSplitRatio } from './lib/storage'
+import { AboutPage } from './components/AboutPage'
+import { SAMPLE_DOCUMENT } from './lib/sampleDocument'
+import { Presence } from './components/motion'
+import { SuggestionBar } from './components/SuggestionBar'
+import { useAppIcon } from './hooks/useAppIcon'
+import { appIconUrl } from './lib/appIcons'
+import { useSmartAssist } from './assist/useSmartAssist'
+import type { AssistMode } from './assist/types'
 import type { ViewMode } from './lib/viewMode'
 
+const EXIT_MS = 220
 const DESKTOP_QUERY = '(min-width: 768px)'
 const COPIED_RESET_MS = 1600
 
@@ -43,6 +52,10 @@ export default function App() {
     error,
     clearError,
     setError,
+    history: recent,
+    openFromHistory,
+    removeFromHistory,
+    clearHistory,
   } = useMarkdownFile()
   const { theme, toggleTheme } = useTheme()
   const isDesktop = useMediaQuery(DESKTOP_QUERY)
@@ -51,6 +64,93 @@ export default function App() {
   const [copied, setCopied] = useState(false)
   const [splitRatio, setSplitRatio] = useState(loadSplitRatio)
   const copiedTimer = useRef<number | null>(null)
+  const [assistMode, setAssistMode] = useState<AssistMode>(loadAssistMode)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const assist = useSmartAssist({
+    mode: assistMode,
+    text: document?.content ?? '',
+    textareaRef,
+    onChange: updateContent,
+  })
+
+  const { icon: appIcon, setIcon: setAppIcon } = useAppIcon()
+  const [showAbout, setShowAbout] = useState(() => window.location.hash === '#about')
+  const [aboutClosing, setAboutClosing] = useState(false)
+  const aboutTimer = useRef<number | null>(null)
+  // Play the exit animation, then unmount.
+  const hideAbout = useCallback(() => {
+    if (aboutTimer.current) return
+    setAboutClosing(true)
+    aboutTimer.current = window.setTimeout(() => {
+      aboutTimer.current = null
+      setAboutClosing(false)
+      setShowAbout(false)
+    }, EXIT_MS)
+  }, [])
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === '#about') setShowAbout(true)
+      else hideAbout()
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
+  }, [hideAbout])
+  const openAbout = useCallback(() => {
+    window.location.hash = 'about'
+  }, [])
+  const closeAbout = useCallback(() => {
+    window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    hideAbout()
+  }, [hideAbout])
+
+  // Editor enter/exit: the pane slides in from the right, and back out on close.
+  const [editorClosing, setEditorClosing] = useState(false)
+  const editorTimer = useRef<number | null>(null)
+  const changeViewMode = useCallback(
+    (mode: ViewMode) => {
+      if (mode === 'edit') {
+        if (editorTimer.current) window.clearTimeout(editorTimer.current)
+        editorTimer.current = null
+        setEditorClosing(false)
+        setViewMode('edit')
+        return
+      }
+      if (viewMode !== 'edit' || editorTimer.current) return
+      setEditorClosing(true)
+      editorTimer.current = window.setTimeout(() => {
+        editorTimer.current = null
+        setEditorClosing(false)
+        setViewMode('preview')
+      }, EXIT_MS)
+    },
+    [viewMode],
+  )
+
+  const handleAssistModeChange = useCallback((mode: AssistMode) => {
+    setAssistMode(mode)
+    saveAssistMode(mode)
+  }, [])
+
+  const editor = document && (
+    <MarkdownEditor
+      value={document.content}
+      onChange={updateContent}
+      textareaRef={textareaRef}
+      {...(assist.enabled ? assist.handlers : {})}
+    >
+      <Presence
+        show={assist.enabled && !!assist.suggestion}
+        enter=""
+        exit="anim-slide-down"
+        duration={160}
+        className="pointer-events-none absolute inset-x-3 bottom-3 z-10"
+      >
+        {assist.enabled && assist.suggestion && (
+          <SuggestionBar key={assist.suggestion.key} suggestion={assist.suggestion} onAccept={assist.accept} onDismiss={assist.dismiss} />
+        )}
+      </Presence>
+    </MarkdownEditor>
+  )
 
   const showResult = useCallback(
     (created: boolean) => {
@@ -77,11 +177,27 @@ export default function App() {
     }
   }, [pasteText, showResult])
 
+  // No "discard?" prompts: the current document is kept in Recent before switching.
+  const handleOpenHistory = useCallback(
+    (entry: Parameters<typeof openFromHistory>[0]) => {
+      openFromHistory(entry)
+      if (showAbout) closeAbout()
+      setViewMode(isDesktop ? 'preview' : 'edit')
+    },
+    [openFromHistory, showAbout, closeAbout, isDesktop],
+  )
+
   const handleNew = useCallback(() => {
-    if (isDirty && !window.confirm('Discard unsaved changes?')) return
     newDocument()
     setViewMode('edit')
-  }, [isDirty, newDocument])
+  }, [newDocument])
+
+  const handleTrySmartAssist = useCallback(() => {
+    pasteText(SAMPLE_DOCUMENT)
+    handleAssistModeChange(assistMode === 'off' ? 'heuristics' : assistMode)
+    closeAbout()
+    setViewMode('edit')
+  }, [pasteText, handleAssistModeChange, assistMode, closeAbout])
 
   const handleExport = useCallback(() => {
     if (!document) return
@@ -198,19 +314,27 @@ export default function App() {
 
   const hasDocument = document !== null
   const editing = hasDocument && viewMode === 'edit'
+  // Previous screen — lets the preview skip its fade when it's revealed by the editor closing.
+  const view = showAbout ? 'about' : !hasDocument ? 'empty' : editing ? 'edit' : 'preview'
+  const prevView = useRef(view)
+  const currentView = useRef(view)
+  if (currentView.current !== view) {
+    prevView.current = currentView.current
+    currentView.current = view
+  }
 
   return (
     <div
       className={`flex flex-col bg-surface text-ink dark:bg-dark-surface dark:text-dark-ink ${
-        editing ? 'h-dvh overflow-hidden' : 'min-h-dvh'
+        editing ? 'h-dvh overflow-clip' : 'min-h-dvh'
       }`}
     >
       <Header
         hasDocument={hasDocument}
         filename={document?.filename ?? null}
         isDirty={isDirty}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        viewMode={editorClosing ? 'preview' : viewMode}
+        onViewModeChange={changeViewMode}
         onNew={handleNew}
         onOpen={handleImport}
         onCopy={handleCopy}
@@ -219,44 +343,71 @@ export default function App() {
         theme={theme}
         onToggleTheme={toggleTheme}
         isDesktop={isDesktop}
+        assistMode={assistMode}
+        assistStatus={assist.status}
+        onAssistModeChange={handleAssistModeChange}
+        onAbout={openAbout}
+        appIconSrc={appIconUrl(appIcon)}
+        history={recent}
+        currentDocId={document?.id}
+        onOpenHistory={handleOpenHistory}
+        onRemoveHistory={removeFromHistory}
+        onClearHistory={clearHistory}
       />
 
-      {isDragging && (
-        <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-accent/10 backdrop-blur-[1px] dark:bg-dark-accent/10">
-          <div className="rounded-xl border-2 border-dashed border-accent bg-surface px-10 py-6 text-sm font-medium text-accent dark:border-dark-accent dark:bg-dark-surface dark:text-dark-accent">
+      <Presence show={isDragging} duration={160} className="pointer-events-none fixed inset-0 z-50">
+        <div className="flex h-full items-center justify-center bg-accent/10 backdrop-blur-[1px] dark:bg-dark-accent/10">
+          <div className="anim-pop rounded-xl border-2 border-dashed border-accent bg-surface px-10 py-6 text-sm font-medium text-accent dark:border-dark-accent dark:bg-dark-surface dark:text-dark-accent">
             Drop to open
           </div>
         </div>
-      )}
+      </Presence>
 
-      {!document ? (
-        <EmptyState isDragging={isDragging} onOpenFile={handleImport} onPaste={handlePasteFromClipboard} />
+      {showAbout ? (
+        <AboutPage
+          closing={aboutClosing}
+          onBack={closeAbout}
+          onTrySmartAssist={handleTrySmartAssist}
+          appIcon={appIcon}
+          onAppIconChange={setAppIcon}
+        />
+      ) : !document ? (
+        <EmptyState
+          isDragging={isDragging}
+          onOpenFile={handleImport}
+          onPaste={handlePasteFromClipboard}
+          history={recent}
+          onOpenHistory={handleOpenHistory}
+          onRemoveHistory={removeFromHistory}
+        />
       ) : editing ? (
         isDesktop ? (
           <SplitPanes
+            closing={editorClosing}
+            animateWidth={document.content.length < 40_000}
             ratio={splitRatio}
             onRatioChange={handleChangeSplitRatio}
             left={
               <main>
-                <MarkdownPreview content={document.content} />
+                <MarkdownPreview content={document.content} readability={assist.readability} />
               </main>
             }
             right={
               <main className="h-full">
-                <MarkdownEditor value={document.content} onChange={updateContent} />
+                {editor}
               </main>
             }
           />
         ) : (
           <>
-            <main className="min-h-0 flex-1">
-              <MarkdownEditor value={document.content} onChange={updateContent} />
+            <main className={`min-h-0 flex-1 ${editorClosing ? 'anim-slide-out-right' : 'anim-slide-in-right'}`}>
+              {editor}
             </main>
             <div className="shrink-0 border-t border-line bg-surface p-3 dark:border-dark-line dark:bg-dark-surface">
               <button
                 type="button"
-                onClick={() => setViewMode('preview')}
-                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-blue-500"
+                onClick={() => changeViewMode('preview')}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
               >
                 <Eye className="h-4 w-4" />
                 Preview
@@ -265,22 +416,23 @@ export default function App() {
           </>
         )
       ) : (
-        <main className="flex flex-1 flex-col">
-          <MarkdownPreview content={document.content} />
+        <main key="preview" className={`flex flex-1 flex-col ${prevView.current === 'edit' ? '' : 'anim-fade'}`}>
+          <MarkdownPreview content={document.content} readability={assist.readability} />
         </main>
       )}
 
-      {document && (
-        <footer className="flex h-8 shrink-0 items-center justify-center gap-4 border-t border-line bg-surface text-xs text-ink-muted dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink-muted">
+      {document && !showAbout && (
+        <footer className="anim-fade flex h-8 shrink-0 items-center justify-center gap-4 border-t border-line bg-surface text-xs text-ink-muted dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink-muted">
           <span>{countWords(document.content)} words</span>
           <span>{document.content.length} characters</span>
         </footer>
       )}
 
-      {error && (
+      <Presence show={!!error} enter="" exit="anim-slide-down" duration={160} className="fixed bottom-4 right-4 z-50">
+        {error && (
         <div
           role="alert"
-          className="fixed bottom-4 right-4 z-50 flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lg dark:border-red-900 dark:bg-red-950 dark:text-red-300"
+          className="anim-slide-up flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lg dark:border-red-900 dark:bg-red-950 dark:text-red-300"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
           <span>{error}</span>
@@ -293,7 +445,8 @@ export default function App() {
             <X className="h-4 w-4" />
           </button>
         </div>
-      )}
+        )}
+      </Presence>
     </div>
   )
 }

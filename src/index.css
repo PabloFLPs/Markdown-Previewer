@@ -9,6 +9,7 @@
   --color-ink-muted: #6b7280;
   --color-line: #e5e7eb;
   --color-accent: #2563eb;
+  --color-accent-strong: #1d4ed8;
 
   --color-dark-surface: #0d1117;
   --color-dark-surface-soft: #161b22;
@@ -17,6 +18,7 @@
   --color-dark-ink-muted: #8b949e;
   --color-dark-line: #30363d;
   --color-dark-accent: #58a6ff;
+  --color-dark-accent-strong: #79b8ff;
 
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
@@ -24,6 +26,26 @@
 
 :root {
   color-scheme: light;
+}
+
+/* Accent palettes — follow the selected app icon (data-accent on <html>). */
+:root[data-accent='mono'] {
+  --color-accent: #27272a;
+  --color-accent-strong: #09090b;
+  --color-dark-accent: #d4d4d8;
+  --color-dark-accent-strong: #f4f4f5;
+}
+:root[data-accent='outline'] {
+  --color-accent: #0d9488;
+  --color-accent-strong: #0f766e;
+  --color-dark-accent: #2dd4bf;
+  --color-dark-accent-strong: #5eead4;
+}
+:root[data-accent='sunset'] {
+  --color-accent: #db2777;
+  --color-accent-strong: #be185d;
+  --color-dark-accent: #f472b6;
+  --color-dark-accent-strong: #f9a8d4;
 }
 
 .dark {
@@ -232,4 +254,135 @@ body {
 
 .dark .markdown-body hr {
   border-top-color: var(--color-dark-line);
+}
+/* ---------- Motion ---------- */
+/* Fast, subtle, interruptible. Everything collapses under prefers-reduced-motion. */
+
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+}
+@keyframes pop {
+  0% { opacity: 0; transform: scale(0.4); }
+  70% { opacity: 1; transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes spin-in {
+  from { opacity: 0; transform: rotate(-90deg) scale(0.6); }
+}
+@keyframes sparkle {
+  0%, 100% { transform: rotate(0) scale(1); }
+  40% { transform: rotate(18deg) scale(1.15); }
+  70% { transform: rotate(-8deg) scale(0.95); }
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+@keyframes sink-out {
+  to { opacity: 0; transform: translateY(6px); }
+}
+@keyframes slide-down-out {
+  to { opacity: 0; transform: translateY(10px) scale(0.98); }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-12px); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(32px); }
+}
+@keyframes slide-out-right {
+  to { opacity: 0; transform: translateX(32px); }
+}
+
+.anim-slide-down { animation: slide-down-out 160ms var(--ease-out) both; }
+.anim-slide-in-left { animation: slide-in-left 220ms var(--ease-out) both; }
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+@keyframes menu-out {
+  to { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+.anim-menu-in { animation: menu-in 160ms var(--ease-out) both; }
+.anim-menu-out { animation: menu-out 120ms var(--ease-out) both; }
+.anim-fade-out { animation: fade-out 220ms var(--ease-out) both; }
+.anim-slide-in-right { animation: slide-in-right 260ms var(--ease-out) both; }
+.anim-slide-out-right { animation: slide-out-right 220ms var(--ease-out) both; }
+.anim-fade { animation: fade-in 180ms var(--ease-out) both; }
+.anim-rise { animation: rise-in 240ms var(--ease-out) both; }
+.anim-slide-up { animation: slide-up 220ms var(--ease-out) both; }
+.anim-pop { animation: pop 260ms var(--ease-spring) both; }
+.anim-spin-in { animation: spin-in 280ms var(--ease-spring) both; }
+
+/* Staggered children (About page sections, feature rows). */
+.anim-stagger > * { animation: rise-in 320ms var(--ease-out) both; }
+.anim-stagger > *:nth-child(2) { animation-delay: 40ms; }
+.anim-stagger > *:nth-child(3) { animation-delay: 80ms; }
+.anim-stagger > *:nth-child(4) { animation-delay: 120ms; }
+.anim-stagger > *:nth-child(5) { animation-delay: 160ms; }
+.anim-stagger > *:nth-child(n + 6) { animation-delay: 200ms; }
+
+/* Reverse stagger for exits: last in, first out. */
+.anim-stagger-out > * { animation: sink-out 180ms var(--ease-out) both; }
+.anim-stagger-out > *:nth-last-child(2) { animation-delay: 15ms; }
+.anim-stagger-out > *:nth-last-child(3) { animation-delay: 30ms; }
+.anim-stagger-out > *:nth-last-child(n + 4) { animation-delay: 40ms; }
+
+/* Every interactive control: quick lift on hover, press on click. */
+button:not(:disabled),
+.press {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: var(--ease-out);
+}
+@media (hover: hover) {
+  header button:not(:disabled):hover,
+  .press:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px -2px rgb(0 0 0 / 0.12);
+  }
+  .dark header button:not(:disabled):hover,
+  .dark .press:hover {
+    box-shadow: 0 2px 8px -2px rgb(0 0 0 / 0.5);
+  }
+  .group:hover .hover-sparkle {
+    animation: sparkle 500ms var(--ease-out);
+  }
+}
+button:not(:disabled):active,
+.press:active {
+  transform: translateY(0) scale(0.96);
+  transition-duration: 60ms;
+}
+
+/* Theme switch cross-fade (View Transitions API; class fallback below). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+  animation-timing-function: var(--ease-out);
+}
+
+.theme-transition,
+.theme-transition * {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease !important;
+}
+
+.markdown-body { transition: color 200ms ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
 }
