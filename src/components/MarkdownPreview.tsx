@@ -1,12 +1,42 @@
+import { Children, isValidElement, useMemo } from 'react'
+import type { ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
+import type { ReadabilityMark } from '../assist/types'
 
 interface MarkdownPreviewProps {
   content: string
+  /** Smart Assist F4 — per-`##` readability marks. */
+  readability?: ReadabilityMark[]
 }
 
-export function MarkdownPreview({ content }: MarkdownPreviewProps) {
+const DOT_COLORS = ['bg-emerald-500/70', 'bg-emerald-500/70', 'bg-amber-500/70', 'bg-orange-500/80', 'bg-red-500/80']
+
+export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) {
+  const components = useMemo<Components>(() => {
+    if (!readability?.length) return baseComponents
+    const byHeading = new Map(readability.map((m) => [normalize(m.heading), m]))
+    return {
+      ...baseComponents,
+      h2: ({ children }) => {
+        const mark = byHeading.get(normalize(textOf(children)))
+        return (
+          <h2 className="relative">
+            {mark && (
+              <span
+                title={`Readability: ${mark.label}`}
+                aria-label={`Readability: ${mark.label}`}
+                className={`anim-pop absolute -left-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full ${DOT_COLORS[mark.value]}`}
+              />
+            )}
+            {children}
+          </h2>
+        )
+      },
+    }
+  }, [readability])
+
   return (
     <div className="markdown-body mx-auto w-full max-w-[900px] px-6 py-10">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
@@ -16,10 +46,26 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   )
 }
 
-const components: Components = {
+const baseComponents: Components = {
   a: ({ href, children }) => (
     <a href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
   ),
+}
+
+function textOf(node: ReactNode): string {
+  return Children.toArray(node)
+    .map((c) => (typeof c === 'string' || typeof c === 'number' ? String(c) : isValidElement<{ children?: ReactNode }>(c) ? textOf(c.props.children) : ''))
+    .join('')
+}
+
+/** Match raw Markdown heading text against rendered text (strip inline syntax). */
+function normalize(s: string): string {
+  return s
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/[*_`~]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
 }

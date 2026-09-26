@@ -1,0 +1,16 @@
+[
+  { "label": "csv", "text": "name,age,city\nAna,31,São Paulo\nBruno,27,Rio" },
+  { "label": "csv", "text": "id,price\n1,9.99\n2,19.90\n3,4.50" },
+  { "label": "tsv", "text": "Produto\tQtd\tPreço\nCafé\t2\t15,00\nPão\t6\t0,80" },
+  { "label": "tsv", "text": "a\tb\n1\t2" },
+  { "label": "table", "text": "NAME      READY   STATUS\napi-1     1/1     Running\nweb-2     0/1     Pending" },
+  { "label": "list", "text": "• Milk\n• Eggs\n• Bread" },
+  { "label": "list", "text": "1) Clone the repo\n2) Install deps\n3) Run" },
+  { "label": "list", "text": "Apples\nBananas\nOranges\nGrapes" },
+  { "label": "json", "text": "{\n  \"ok\": true,\n  \"items\": [1, 2]\n}" },
+  { "label": "code", "text": "function sum(a, b) {\n  return a + b;\n}" },
+  { "label": "code", "text": "def f(x):\n    return x * 2" },
+  { "label": "prose", "text": "I went to the store yesterday, and it was closed. So I came back home and cooked, which was fine.\nTomorrow I will try again, maybe in the morning when it is less crowded." },
+  { "label": "prose", "text": "Ontem fui ao mercado, mas estava fechado. Então voltei para casa e cozinhei, o que foi ótimo.\nAmanhã tento de novo, talvez de manhã, quando está mais vazio." },
+  { "label": "prose", "text": "Hello team,\nThe release is scheduled for Friday, pending the final QA sign-off from everyone involved." }
+]

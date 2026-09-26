@@ -1,4 +1,5 @@
 export interface StoredDocument {
+  id?: string
   filename: string | null
   content: string
   savedContent: string
@@ -17,6 +18,7 @@ export function loadDocument(): StoredDocument | null {
       parsed.content === '' && !parsed.filename && !parsed.savedContent
     if (isEmptyUntitled) return null
     return {
+      id: typeof parsed.id === 'string' ? parsed.id : undefined,
       filename: typeof parsed.filename === 'string' ? parsed.filename : null,
       content: parsed.content,
       savedContent:
@@ -56,6 +58,26 @@ export function loadSplitRatio(): number {
 export function saveSplitRatio(ratio: number): void {
   try {
     localStorage.setItem(SPLIT_KEY, String(ratio))
+  } catch {
+    // Ignore.
+  }
+}
+
+export type StoredAssistMode = 'off' | 'heuristics' | 'model'
+const ASSIST_KEY = 'markdown-preview:assist'
+
+export function loadAssistMode(): StoredAssistMode {
+  try {
+    const raw = localStorage.getItem(ASSIST_KEY)
+    return raw === 'heuristics' || raw === 'model' ? raw : 'off'
+  } catch {
+    return 'off'
+  }
+}
+
+export function saveAssistMode(mode: StoredAssistMode): void {
+  try {
+    localStorage.setItem(ASSIST_KEY, mode)
   } catch {
     // Ignore.
   }

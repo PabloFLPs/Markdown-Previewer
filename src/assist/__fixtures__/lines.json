@@ -1,0 +1,12 @@
+[
+  { "doc": "\n**Installation**\n\nRun the thing.", "expect": true },
+  { "doc": "\n#Getting started\n\ntext", "expect": true },
+  { "doc": "== Usage ==\n\ntext", "expect": true },
+  { "doc": "- one\n-two\n- three", "expect": true },
+  { "doc": "1. a\n2)b\n3. c", "expect": true },
+  { "doc": "Temperature dropped:\n-5 degrees at night", "expect": false },
+  { "doc": "\n**Note: this is a whole sentence that is bold for emphasis in the middle of the text.**\n", "expect": false },
+  { "doc": "Follow us #markdown", "expect": false },
+  { "doc": "#fff is white", "expect": false },
+  { "doc": "\n**Instalação**\n\nExecute o comando.", "expect": true }
+]
