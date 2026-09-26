@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 export type Theme = 'light' | 'dark'
 
@@ -19,7 +20,18 @@ export function useTheme() {
   }, [theme])
 
   const toggleTheme = useCallback(() => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    const flip = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    // View Transitions: one GPU cross-fade of two snapshots — cheap even for huge documents.
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown }
+    if (doc.startViewTransition && !reduced) {
+      doc.startViewTransition(() => flushSync(flip))
+      return
+    }
+    const root = document.documentElement
+    root.classList.add('theme-transition')
+    window.setTimeout(() => root.classList.remove('theme-transition'), 250)
+    flip()
   }, [])
 
   return { theme, toggleTheme }

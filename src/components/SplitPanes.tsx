@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
 const MIN_RATIO = 20
@@ -9,14 +9,26 @@ interface SplitPanesProps {
   onRatioChange: (ratio: number) => void
   left: ReactNode
   right: ReactNode
+  /** Play the exit animation (editor pane slides back out to the right). */
+  closing?: boolean
+  /** Disable the width animation (e.g. very large documents, where reflowing every frame is costly). */
+  animateWidth?: boolean
 }
 
 function clamp(value: number): number {
   return Math.min(MAX_RATIO, Math.max(MIN_RATIO, value))
 }
 
-export function SplitPanes({ ratio, onRatioChange, left, right }: SplitPanesProps) {
+export function SplitPanes({ ratio, onRatioChange, left, right, closing = false, animateWidth = true }: SplitPanesProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  // Start with the preview at full width, then animate to `ratio` on the next frame.
+  const [entered, setEntered] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setEntered(true))
+    return () => cancelAnimationFrame(id)
+  }, [])
+  const width = entered && !closing ? ratio : 100
 
   const startDrag = (e: React.PointerEvent) => {
     e.preventDefault()
@@ -31,12 +43,14 @@ export function SplitPanes({ ratio, onRatioChange, left, right }: SplitPanesProp
     }
 
     const onUp = () => {
+      setDragging(false)
       window.removeEventListener('pointermove', onMove)
       window.removeEventListener('pointerup', onUp)
       document.body.style.cursor = ''
       document.body.style.userSelect = ''
     }
 
+    setDragging(true)
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
     window.addEventListener('pointermove', onMove)
@@ -46,7 +60,10 @@ export function SplitPanes({ ratio, onRatioChange, left, right }: SplitPanesProp
   return (
     <div ref={containerRef} className="flex min-h-0 min-w-0 flex-1">
       <div
-        style={{ width: `${ratio}%` }}
+        style={{
+          width: `${width}%`,
+          transition: dragging || !animateWidth ? 'none' : 'width 260ms cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
         className="min-w-0 overflow-y-auto overscroll-contain"
       >
         {left}
@@ -64,7 +81,11 @@ export function SplitPanes({ ratio, onRatioChange, left, right }: SplitPanesProp
         <span className="absolute inset-y-0 -left-2 -right-2" />
       </div>
 
-      <div className="min-h-0 min-w-0 flex-1">{right}</div>
+      <div
+        className={`min-h-0 min-w-0 flex-1 overflow-hidden ${closing ? 'anim-slide-out-right' : 'anim-slide-in-right'}`}
+      >
+        {right}
+      </div>
     </div>
   )
 }
