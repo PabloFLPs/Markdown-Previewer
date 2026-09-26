@@ -3,8 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      // Apply the saved accent before first paint (no colour flash).
+      try {
+        var a = localStorage.getItem("markdown-preview:app-icon");
+        if (a && a !== "classic" && ["mono", "outline", "sunset"].indexOf(a) >= 0) document.documentElement.dataset.accent = a;
+      } catch (e) {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Markdown Preview</title>
+    <title>Smart Markdown Previewer</title>
   </head>
   <body>
     <div id="root"></div>
