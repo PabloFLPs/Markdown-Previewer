@@ -39,5 +39,5 @@ npm run eval:assist  # Smart Assist fixture evaluation (Node ≥ 22.6)
 ```
 
 Stack: React 19 + TypeScript + Vite + Tailwind CSS 4, `react-markdown` + `remark-gfm`, `lucide-react`.
-See `AGENTS.md` for architecture and conventions, and `SMART-ASSIST — Implementation Context.md`
-for the decision-model design.
+See `AGENTS.md` for architecture and conventions, `docs/SMART-ASSIST.md` for the Smart Assist
+technical documentation (heuristics, Laya), and `SMART-ASSIST — Implementation Context.md` for the original design notes.
