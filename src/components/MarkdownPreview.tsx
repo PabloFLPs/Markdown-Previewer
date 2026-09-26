@@ -38,7 +38,7 @@ export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) 
   }, [readability])
 
   return (
-    <div className="markdown-body mx-auto w-full max-w-[900px] px-6 py-10">
+    <div className="markdown-body mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6 sm:py-10">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {content}
       </ReactMarkdown>

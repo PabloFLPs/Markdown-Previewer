@@ -15,6 +15,7 @@ import type { Theme } from '../hooks/useTheme'
 import { AssistToggle } from './AssistToggle'
 import { CollapseX } from './motion'
 import { HistoryMenu } from './HistoryMenu'
+import { MoreMenu } from './MoreMenu'
 import type { HistoryEntry } from '../lib/history'
 import type { AssistMode } from '../assist/types'
 import type { EngineStatus } from '../assist/useSmartAssist'
@@ -43,6 +44,7 @@ interface HeaderProps {
   onOpenHistory: (entry: HistoryEntry) => void
   onRemoveHistory: (id: string) => void
   onClearHistory: () => void
+  showingAbout?: boolean
 }
 
 const actionButton =
@@ -72,13 +74,15 @@ export function Header({
   onOpenHistory,
   onRemoveHistory,
   onClearHistory,
+  showingAbout = false,
 }: HeaderProps) {
-  const showBackToEditor = !isDesktop && hasDocument && viewMode === 'preview'
+  const compact = !isDesktop
+  const showBackToEditor = compact && hasDocument && viewMode === 'preview' && !showingAbout
   const editing = viewMode === 'edit'
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-surface px-4 dark:border-dark-line dark:bg-dark-surface">
-      <div className="flex min-w-0 items-center gap-2.5">
+    <header className="relative z-30 flex h-14 shrink-0 items-center gap-2 border-b pl-[max(1rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:gap-3 border-line bg-surface px-4 dark:border-dark-line dark:bg-dark-surface">
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
         {showBackToEditor ? (
           <button
             key="back"
@@ -92,7 +96,7 @@ export function Header({
         ) : (
           <>
             <img src={appIconSrc} alt="" className="h-5 w-5 shrink-0" />
-            <span className="shrink-0 text-sm font-semibold tracking-tight text-ink dark:text-dark-ink">
+            <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-ink dark:text-dark-ink">
               Smart Markdown Previewer
             </span>
             {hasDocument && (
@@ -114,9 +118,9 @@ export function Header({
         )}
       </div>
 
-      <div className="ml-auto flex shrink-0 items-center gap-2">
-        <CollapseX show={hasDocument && editing}>
-          <AssistToggle mode={assistMode} status={assistStatus} onChange={onAssistModeChange} />
+      <div className="ml-auto flex shrink-0 items-center gap-1.5 sm:gap-2">
+        <CollapseX show={hasDocument && editing} gap={compact ? 6 : 8}>
+          <AssistToggle mode={assistMode} status={assistStatus} onChange={onAssistModeChange} compact={compact} />
         </CollapseX>
 
         <CollapseX show={hasDocument && isDesktop}>
@@ -133,7 +137,7 @@ export function Header({
           </button>
         </CollapseX>
 
-        <CollapseX show={hasDocument}>
+        <CollapseX show={hasDocument && !compact}>
           <button
             type="button"
             onClick={onCopy}
@@ -145,25 +149,30 @@ export function Header({
           </button>
         </CollapseX>
 
-        <button type="button" onClick={onNew} title="New document (Ctrl/Cmd + N)" className={actionButton}>
-          <FilePlus2 className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">New</span>
-        </button>
+        {!compact && (
+          <>
+            <button type="button" onClick={onNew} title="New document (Ctrl/Cmd + N)" className={actionButton}>
+              <FilePlus2 className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">New</span>
+            </button>
 
-        <button type="button" onClick={onOpen} title="Open a Markdown file (Ctrl/Cmd + O)" className={actionButton}>
-          <FolderOpen className="h-3.5 w-3.5" />
-          <span className="hidden md:inline">Open</span>
-        </button>
+            <button type="button" onClick={onOpen} title="Open a Markdown file (Ctrl/Cmd + O)" className={actionButton}>
+              <FolderOpen className="h-3.5 w-3.5" />
+              <span className="hidden md:inline">Open</span>
+            </button>
+          </>
+        )}
 
-        <CollapseX show={hasDocument}>
+        <CollapseX show={hasDocument} gap={compact ? 6 : 8}>
           <button
             type="button"
             onClick={onExport}
             title="Export Markdown (Ctrl/Cmd + S)"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
+            aria-label="Export Markdown"
+            className="inline-flex h-9 min-w-9 items-center justify-center md:h-8 md:min-w-0 gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
           >
             <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="hidden md:inline">Export</span>
           </button>
         </CollapseX>
 
@@ -173,8 +182,22 @@ export function Header({
           onOpen={onOpenHistory}
           onRemove={onRemoveHistory}
           onClear={onClearHistory}
+          compact={compact}
         />
 
+        {compact ? (
+          <MoreMenu
+            hasDocument={hasDocument}
+            copied={copied}
+            theme={theme}
+            onNew={onNew}
+            onOpen={onOpen}
+            onCopy={onCopy}
+            onAbout={onAbout}
+            onToggleTheme={onToggleTheme}
+          />
+        ) : (
+          <>
         <button
           type="button"
           onClick={onAbout}
@@ -186,6 +209,8 @@ export function Header({
         </button>
 
         <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          </>
+        )}
       </div>
     </header>
   )

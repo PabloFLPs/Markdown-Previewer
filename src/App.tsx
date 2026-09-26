@@ -353,6 +353,7 @@ export default function App() {
         onOpenHistory={handleOpenHistory}
         onRemoveHistory={removeFromHistory}
         onClearHistory={clearHistory}
+        showingAbout={showAbout}
       />
 
       <Presence show={isDragging} duration={160} className="pointer-events-none fixed inset-0 z-50">
@@ -422,7 +423,7 @@ export default function App() {
       )}
 
       {document && !showAbout && (
-        <footer className="anim-fade flex h-8 shrink-0 items-center justify-center gap-4 border-t border-line bg-surface text-xs text-ink-muted dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink-muted">
+        <footer className="anim-fade flex min-h-8 shrink-0 pb-[env(safe-area-inset-bottom)] items-center justify-center gap-4 border-t border-line bg-surface text-xs text-ink-muted dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink-muted">
           <span>{countWords(document.content)} words</span>
           <span>{document.content.length} characters</span>
         </footer>

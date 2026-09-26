@@ -10,9 +10,11 @@ interface HistoryMenuProps {
   onOpen: (entry: HistoryEntry) => void
   onRemove: (id: string) => void
   onClear: () => void
+  /** Mobile: bigger tap target, full-width sheet under the header. */
+  compact?: boolean
 }
 
-export function HistoryMenu({ entries, currentId, onOpen, onRemove, onClear }: HistoryMenuProps) {
+export function HistoryMenu({ entries, currentId, onOpen, onRemove, onClear, compact = false }: HistoryMenuProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -50,7 +52,7 @@ export function HistoryMenu({ entries, currentId, onOpen, onRemove, onClear }: H
         aria-label="Recent documents"
         aria-expanded={open}
         title="Recent documents (Ctrl/Cmd + Shift + H)"
-        className={`group inline-flex h-8 w-8 items-center justify-center rounded-md border bg-surface transition-colors dark:bg-dark-surface-soft ${
+        className={`group inline-flex items-center ${compact ? 'h-9 w-9' : 'h-8 w-8'} justify-center rounded-md border bg-surface transition-colors dark:bg-dark-surface-soft ${
           open
             ? 'border-accent text-accent dark:border-dark-accent dark:text-dark-accent'
             : 'border-line text-ink-muted hover:border-accent hover:text-accent dark:border-dark-line dark:text-dark-ink-muted dark:hover:border-dark-accent dark:hover:text-dark-accent'
@@ -64,7 +66,11 @@ export function HistoryMenu({ entries, currentId, onOpen, onRemove, onClear }: H
         enter="anim-menu-in"
         exit="anim-menu-out"
         duration={140}
-        className="absolute right-0 top-10 z-40 w-80 max-w-[calc(100vw-2rem)] origin-top-right"
+        className={
+          compact
+            ? 'fixed inset-x-3 top-[3.75rem] z-40 origin-top'
+            : 'absolute right-0 top-10 z-40 w-80 origin-top-right'
+        }
       >
         <div className="rounded-lg border border-line bg-surface p-1.5 shadow-lg dark:border-dark-line dark:bg-dark-surface-soft">
           <div className="flex items-center justify-between px-2.5 pb-1.5 pt-1">

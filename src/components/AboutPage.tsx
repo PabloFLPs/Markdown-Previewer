@@ -46,7 +46,7 @@ export function AboutPage({ closing = false, onBack, onTrySmartAssist, appIcon, 
   return (
     <KeyStyleContext.Provider value={keyStyle}>
     <main className={`flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
-      <div className={`mx-auto w-full max-w-[760px] px-6 py-10 ${closing ? 'anim-stagger-out' : 'anim-stagger'}`}>
+      <div className={`mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10 ${closing ? 'anim-stagger-out' : 'anim-stagger'}`}>
         <button
           type="button"
           onClick={onBack}
@@ -216,7 +216,7 @@ function KeyStyleToggle({ value, onChange }: { value: KeyStyle; onChange: (s: Ke
     ['windows', 'Windows / Linux', 'Ctrl Shift'],
   ]
   return (
-    <div role="radiogroup" aria-label="Keyboard shortcut style" className="relative inline-flex rounded-md border border-line p-0.5 dark:border-dark-line">
+    <div role="radiogroup" aria-label="Keyboard shortcut style" className="relative flex w-full rounded-md border border-line p-0.5 sm:inline-flex sm:w-auto dark:border-dark-line">
       <span
         aria-hidden
         className="absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-accent/10 transition-transform duration-200 ease-out dark:bg-dark-accent/15"
@@ -229,7 +229,7 @@ function KeyStyleToggle({ value, onChange }: { value: KeyStyle; onChange: (s: Ke
           role="radio"
           aria-checked={value === id}
           onClick={() => onChange(id)}
-          className={`relative z-10 flex w-36 flex-col items-center rounded px-3 py-1 text-xs ${
+          className={`relative z-10 flex min-w-0 flex-1 flex-col sm:w-36 sm:flex-none items-center rounded px-3 py-1 text-xs ${
             value === id ? 'text-accent dark:text-dark-accent' : 'text-ink-muted hover:text-ink dark:text-dark-ink-muted dark:hover:text-dark-ink'
           }`}
         >
