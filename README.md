@@ -1,32 +1,43 @@
-# Markdown Preview
+# Smart Markdown Previewer
 
-A minimalist, local-first Markdown viewer with lightweight editing. Everything runs in the browser — files never leave your machine.
+A minimalist, local-first Markdown viewer and editor with a small on-device assistant.
+Everything runs in the browser — files never leave your machine.
 
 ## Features
 
-- Markdown preview with GFM support (tables, task lists, strikethrough, autolinks)
-- Import `.md` / `.markdown` files via file picker or drag & drop
-- Plain-text editor mode (`Ctrl/Cmd + E` to toggle)
-- Export the current document (`Ctrl/Cmd + S`)
-- Light / dark themes, persisted in `localStorage`
-- Keyboard shortcut `Ctrl/Cmd + O` to open a file
-- Word and character counts
-- Responsive layout
+- **Preview-first** rendering with GFM (tables, task lists, strikethrough, autolinks)
+- **Open** via file picker, drag & drop, or paste; **live split editor** with a resizable divider
+- **Smart Assist** (opt-in, local): code-fence language, smart paste (CSV/TSV/aligned text → table,
+  lists, JSON/code → fenced block), structure hints (`**Title**` → heading, `-item` → list…),
+  per-section readability dots. Suggest-only: `Tab` accepts, `Esc` dismisses, undo still works.
+- **Recent documents** — up to 15, kept in this browser (`⌘/Ctrl ⇧ H`)
+- **Autosave**, export `.md`, copy Markdown, word/char counts
+- **Appearance** — app icon + accent palette (Classic, Mono, Outline, Sunset), light/dark theme,
+  macOS or Windows keyboard-shortcut labels
+- **About page** (`#about`) documenting every feature, with a Smart Assist playground
+- Fluid, fast animations; all disabled under `prefers-reduced-motion`
 
-## Stack
+## Shortcuts
 
-React + TypeScript + Vite + Tailwind CSS, with `react-markdown` and `remark-gfm` for rendering.
+| Keys | Action |
+|---|---|
+| `⌘/Ctrl O` | Open file |
+| `⌘/Ctrl N` | New document |
+| `⌘/Ctrl S` | Export |
+| `⌘/Ctrl ⇧ C` | Copy Markdown |
+| `⌘/Ctrl ⇧ H` | Recent documents |
+| `Tab` / `Esc` | Accept / dismiss a suggestion |
 
 ## Development
 
 ```bash
 npm install
-npm run dev
+npm run dev          # dev server
+npm run build        # type-check + production build
+npm run lint         # oxlint
+npm run eval:assist  # Smart Assist fixture evaluation (Node ≥ 22.6)
 ```
 
-## Build
-
-```bash
-npm run build
-npm run preview
-```
+Stack: React 19 + TypeScript + Vite + Tailwind CSS 4, `react-markdown` + `remark-gfm`, `lucide-react`.
+See `AGENTS.md` for architecture and conventions, and `SMART-ASSIST — Implementation Context.md`
+for the decision-model design.
