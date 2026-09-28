@@ -95,7 +95,8 @@ export function CollapseX({
         pointerEvents: show ? undefined : 'none',
       }}
     >
-      <div className="flex min-w-0" style={{ overflow: settled && show ? 'visible' : 'hidden' }}>
+      {/* No wrapping/shrinking while the width animates — the item is revealed (clipped), not reflowed. */}
+      <div className="flex min-w-0 whitespace-nowrap [&>*]:shrink-0" style={{ overflow: settled && show ? 'visible' : 'hidden' }}>
         {last.current}
       </div>
     </div>
