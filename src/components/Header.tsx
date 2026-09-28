@@ -1,3 +1,4 @@
+import { useI18n } from '../hooks/useI18n'
 import {
   ArrowLeft,
   Check,
@@ -76,6 +77,7 @@ export function Header({
   onClearHistory,
   showingAbout = false,
 }: HeaderProps) {
+  const { t } = useI18n()
   const compact = !isDesktop
   const showBackToEditor = compact && hasDocument && viewMode === 'preview' && !showingAbout
   const editing = viewMode === 'edit'
@@ -91,22 +93,22 @@ export function Header({
             className="anim-slide-in-left -ml-2 inline-flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-sm font-medium text-ink transition-colors hover:text-accent dark:text-dark-ink dark:hover:text-dark-accent"
           >
             <ArrowLeft className="h-4 w-4" />
-            Edit
+            {t('action.edit')}
           </button>
         ) : (
           <>
             <img src={appIconSrc} alt="" className="h-5 w-5 shrink-0" />
             <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-ink dark:text-dark-ink">
-              Smart Markdown Previewer
+              {t('app.name')}
             </span>
             {hasDocument && (
               <span className="anim-rise hidden min-w-0 items-baseline gap-1 truncate text-sm text-ink-muted sm:flex dark:text-dark-ink-muted">
                 <span className="text-line dark:text-dark-line">/</span>
-                <span className="truncate font-mono">{filename ?? 'Untitled'}</span>
+                <span className="truncate font-mono">{filename ?? t('doc.untitled')}</span>
                 {isDirty && (
                   <span
-                    aria-label="Unsaved changes"
-                    title="Unsaved changes"
+                    aria-label={t('doc.unsaved')}
+                    title={t('doc.unsaved')}
                     className="anim-pop text-accent dark:text-dark-accent"
                   >
                     *
@@ -127,13 +129,13 @@ export function Header({
           <button
             type="button"
             onClick={() => onViewModeChange(editing ? 'preview' : 'edit')}
-            title={editing ? 'View rendered preview' : 'Live editor'}
+            title={editing ? t('action.previewTitle') : t('action.editTitle')}
             className={actionButton}
           >
             <span key={editing ? 'p' : 'e'} className="anim-spin-in inline-flex">
               {editing ? <Eye className="h-3.5 w-3.5" /> : <PenLine className="h-3.5 w-3.5" />}
             </span>
-            <span key={editing ? 'pt' : 'et'} className="anim-rise">{editing ? 'Preview' : 'Edit'}</span>
+            <span key={editing ? 'pt' : 'et'} className="anim-rise">{editing ? t('action.preview') : t('action.edit')}</span>
           </button>
         </CollapseX>
 
@@ -141,24 +143,24 @@ export function Header({
           <button
             type="button"
             onClick={onCopy}
-            title="Copy Markdown (Ctrl/Cmd + Shift + C)"
+            title={t('action.copyTitle', { keys: 'Ctrl/Cmd + Shift + C' })}
             className={copied ? `${actionButton} border-accent text-accent dark:border-dark-accent dark:text-dark-accent` : actionButton}
           >
             {copied ? <Check className="anim-pop h-3.5 w-3.5" /> : <Clipboard className="h-3.5 w-3.5" />}
-            <span key={copied ? 'c' : 'n'} className={copied ? 'anim-rise' : 'hidden md:inline'}>{copied ? 'Copied' : 'Copy'}</span>
+            <span key={copied ? 'c' : 'n'} className={copied ? 'anim-rise' : 'hidden md:inline'}>{copied ? t('action.copied') : t('action.copy')}</span>
           </button>
         </CollapseX>
 
         {!compact && (
           <>
-            <button type="button" onClick={onNew} title="New document (Ctrl/Cmd + N)" className={actionButton}>
+            <button type="button" onClick={onNew} title={t('action.newTitle', { keys: 'Ctrl/Cmd + N' })} className={actionButton}>
               <FilePlus2 className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">New</span>
+              <span className="hidden md:inline">{t('action.new')}</span>
             </button>
 
-            <button type="button" onClick={onOpen} title="Open a Markdown file (Ctrl/Cmd + O)" className={actionButton}>
+            <button type="button" onClick={onOpen} title={t('action.openTitle', { keys: 'Ctrl/Cmd + O' })} className={actionButton}>
               <FolderOpen className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">Open</span>
+              <span className="hidden md:inline">{t('action.open')}</span>
             </button>
           </>
         )}
@@ -167,12 +169,12 @@ export function Header({
           <button
             type="button"
             onClick={onExport}
-            title="Export Markdown (Ctrl/Cmd + S)"
-            aria-label="Export Markdown"
+            title={t('action.exportTitle', { keys: 'Ctrl/Cmd + S' })}
+            aria-label={t('action.exportMarkdown')}
             className="inline-flex h-9 min-w-9 items-center justify-center md:h-8 md:min-w-0 gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
           >
             <Download className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">Export</span>
+            <span className="hidden md:inline">{t('action.export')}</span>
           </button>
         </CollapseX>
 
@@ -201,8 +203,8 @@ export function Header({
         <button
           type="button"
           onClick={onAbout}
-          aria-label="About & features"
-          title="About & features"
+          aria-label={t('action.about')}
+          title={t('action.about')}
           className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-line bg-surface text-ink-muted transition-colors hover:border-accent hover:text-accent dark:border-dark-line dark:bg-dark-surface-soft dark:text-dark-ink-muted dark:hover:border-dark-accent dark:hover:text-dark-accent"
         >
           <Info className="h-4 w-4" />

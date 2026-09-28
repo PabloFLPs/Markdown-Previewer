@@ -1,7 +1,9 @@
 import { ArrowLeft, BookOpen } from 'lucide-react'
 import { MarkdownPreview } from './MarkdownPreview'
 // Single source of truth: the repo doc is rendered in-app with our own renderer.
-import techDocs from '../../docs/SMART-ASSIST.md?raw'
+import techDocsEn from '../../docs/SMART-ASSIST.md?raw'
+import techDocsPt from '../../docs/SMART-ASSIST.pt-BR.md?raw'
+import { useI18n } from '../hooks/useI18n'
 
 interface TechDocsPageProps {
   closing?: boolean
@@ -10,6 +12,7 @@ interface TechDocsPageProps {
 
 /** "How Smart Assist works" — technical docs (heuristics, Laya, eval). */
 export function TechDocsPage({ closing = false, onBack }: TechDocsPageProps) {
+  const { t, lang } = useI18n()
   return (
     <main className={`flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
       <div className={`mx-auto w-full max-w-[900px] ${closing ? 'anim-stagger-out' : 'anim-stagger'}`}>
@@ -19,14 +22,14 @@ export function TechDocsPage({ closing = false, onBack }: TechDocsPageProps) {
             onClick={onBack}
             className="-ml-2 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-ink-muted transition-colors hover:text-accent dark:text-dark-ink-muted dark:hover:text-dark-accent"
           >
-            <ArrowLeft className="h-4 w-4" /> About
+            <ArrowLeft className="h-4 w-4" /> {t('docs.backToAbout')}
           </button>
           <span className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider text-ink-muted dark:text-dark-ink-muted">
-            <BookOpen className="h-3.5 w-3.5" /> Technical docs
+            <BookOpen className="h-3.5 w-3.5" /> {t('docs.badge')}
           </span>
         </div>
         <div className="tech-docs">
-          <MarkdownPreview content={techDocs} />
+          <MarkdownPreview content={lang === 'pt-BR' ? techDocsPt : techDocsEn} />
         </div>
       </div>
     </main>

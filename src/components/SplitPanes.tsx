@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
+import { useI18n } from '../hooks/useI18n'
 
 const MIN_RATIO = 20
 const MAX_RATIO = 80
@@ -20,6 +21,7 @@ function clamp(value: number): number {
 }
 
 export function SplitPanes({ ratio, onRatioChange, left, right, closing = false, animateWidth = true }: SplitPanesProps) {
+  const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   // Start with the preview at full width, then animate to `ratio` on the next frame.
   const [entered, setEntered] = useState(false)
@@ -72,8 +74,8 @@ export function SplitPanes({ ratio, onRatioChange, left, right, closing = false,
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize preview and editor"
-        title="Drag to resize — double-click to reset"
+        aria-label={t('split.resize')}
+        title={t('split.resizeTitle')}
         onPointerDown={startDrag}
         onDoubleClick={() => onRatioChange(50)}
         className="group relative w-px shrink-0 cursor-col-resize touch-none select-none bg-line transition-colors hover:bg-accent dark:bg-dark-line dark:hover:bg-dark-accent"

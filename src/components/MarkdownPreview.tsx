@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import type { ReadabilityMark } from '../assist/types'
+import { useI18n } from '../hooks/useI18n'
 
 interface MarkdownPreviewProps {
   content: string
@@ -14,6 +15,7 @@ interface MarkdownPreviewProps {
 const DOT_COLORS = ['bg-emerald-500/70', 'bg-emerald-500/70', 'bg-amber-500/70', 'bg-orange-500/80', 'bg-red-500/80']
 
 export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) {
+  const { t } = useI18n()
   const components = useMemo<Components>(() => {
     if (!readability?.length) return baseComponents
     const byHeading = new Map(readability.map((m) => [normalize(m.heading), m]))
@@ -25,8 +27,8 @@ export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) 
           <h2 className="relative">
             {mark && (
               <span
-                title={`Readability: ${mark.label}`}
-                aria-label={`Readability: ${mark.label}`}
+                title={t('readability.title', { label: t(`readability.${mark.value}`) })}
+                aria-label={t('readability.title', { label: t(`readability.${mark.value}`) })}
                 className={`anim-pop absolute -left-4 top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full ${DOT_COLORS[mark.value]}`}
               />
             )}
@@ -35,7 +37,7 @@ export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) 
         )
       },
     }
-  }, [readability])
+  }, [readability, t])
 
   return (
     <div className="markdown-body mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6 sm:py-10">

@@ -22,6 +22,8 @@ export async function suggestPasteConversion(
 
   let insert: string | null = null
   let label = ''
+  let msgKey: string = `suggest.paste.${d.choice}`
+  let msgVars: Record<string, string> | undefined
   switch (d.choice) {
     case 'csv':
       insert = csvToTable(pasted)
@@ -49,6 +51,10 @@ export async function suggestPasteConversion(
       const tag = ok ? lang.choice : 'plaintext'
       insert = toCodeBlock(pasted, tag)
       label = tag === 'plaintext' ? 'Wrap in code block' : `Wrap in \`\`\`${tag} code block`
+      if (tag !== 'plaintext') {
+        msgKey = 'suggest.paste.codeLang'
+        msgVars = { lang: tag }
+      }
       break
     }
     case 'prose':
@@ -60,6 +66,8 @@ export async function suggestPasteConversion(
     feature: 'smartPaste',
     label,
     detail: PASTE_KINDS[d.choice],
+    message: { key: msgKey, vars: msgVars },
+    detailKey: `paste.kind.${d.choice}`,
     confidence: d.probs[d.choice],
     edit: { from, to: from + pasted.length, insert },
     expected: pasted,

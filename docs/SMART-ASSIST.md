@@ -6,7 +6,7 @@ editor, detects a small set of fixable situations, and **suggests** an edit the 
 automatically.
 
 > Design origin and open questions: `SMART-ASSIST — Implementation Context.md` (repo root).
-> Contributor conventions: `AGENTS.md`.
+> Contributor conventions: `AGENTS.md`. Portuguese version: `docs/SMART-ASSIST.pt-BR.md`.
 
 ---
 
@@ -292,7 +292,7 @@ with real-world samples (target 60 / 30 / 30) — and add a Laya column — befo
 4. Add a **feature** in `features/` returning a `Suggestion` with an `expected` guard and a gate.
 5. Wire it in `useSmartAssist.ts` (debounced effect, paste handler or idle effect).
 6. Add **fixtures** and extend `scripts/eval-assist.ts`.
-7. Document it on the **About page** and in this file.
+7. Document it on the **About page** and in this file (both languages), and add its UI strings to `src/lib/locales/`.
 
 Tuning tips: prefer adding a distinctive rule over raising a shared weight; when a fix makes one
 fixture pass, re-run the whole eval — heuristics interact through softmax.

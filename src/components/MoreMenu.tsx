@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Check, Clipboard, FilePlus2, FolderOpen, Info, Moon, MoreHorizontal, Sun } from 'lucide-react'
 import type { Theme } from '../hooks/useTheme'
 import { Presence } from './motion'
+import { useI18n } from '../hooks/useI18n'
 
 interface MoreMenuProps {
   hasDocument: boolean
@@ -18,6 +19,7 @@ interface MoreMenuProps {
 /** Compact (mobile) overflow menu for secondary header actions. */
 export function MoreMenu(props: MoreMenuProps) {
   const { hasDocument, copied, theme, onNew, onOpen, onCopy, onAbout, onToggleTheme } = props
+  const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
@@ -45,7 +47,7 @@ export function MoreMenu(props: MoreMenuProps) {
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="More actions"
+        aria-label={t('action.more')}
         aria-expanded={open}
         aria-haspopup="menu"
         className={`inline-flex h-9 w-9 items-center justify-center rounded-md border bg-surface transition-colors dark:bg-dark-surface-soft ${
@@ -65,22 +67,22 @@ export function MoreMenu(props: MoreMenuProps) {
         className="fixed right-3 top-[3.75rem] z-40 w-56 origin-top-right"
       >
         <div role="menu" className="anim-stagger flex flex-col rounded-lg border border-line bg-surface p-1.5 shadow-lg dark:border-dark-line dark:bg-dark-surface-soft">
-          <Item icon={<FilePlus2 />} label="New document" onClick={run(onNew)} />
-          <Item icon={<FolderOpen />} label="Open file…" onClick={run(onOpen)} />
+          <Item icon={<FilePlus2 />} label={t('action.newDocument')} onClick={run(onNew)} />
+          <Item icon={<FolderOpen />} label={t('action.openFile')} onClick={run(onOpen)} />
           {hasDocument && (
             <Item
               icon={copied ? <Check className="anim-pop" /> : <Clipboard />}
-              label={copied ? 'Copied' : 'Copy Markdown'}
+              label={copied ? t('action.copied') : t('action.copyMarkdown')}
               onClick={run(onCopy, false)}
             />
           )}
           <Item
             icon={theme === 'dark' ? <Sun /> : <Moon />}
-            label={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+            label={theme === 'dark' ? t('theme.light') : t('theme.dark')}
             onClick={run(onToggleTheme, false)}
           />
           <div className="my-1 h-px bg-line dark:bg-dark-line" />
-          <Item icon={<Info />} label="About & features" onClick={run(onAbout)} />
+          <Item icon={<Info />} label={t('action.about')} onClick={run(onAbout)} />
         </div>
       </Presence>
     </div>

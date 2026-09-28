@@ -31,7 +31,8 @@ scripts/eval-assist.ts    fixture evaluation for Smart Assist
   `<CollapseX>` in the header). Presence wrappers must carry the positioning classes (`fixed`/`absolute`)
   because the animated wrapper becomes the containing block. Everything must respect `prefers-reduced-motion`.
 - **Buttons:** header buttons lift on hover automatically (`header button:hover`); non-button controls use `.press`.
-- **Storage keys:** `markdown-preview:{doc,history,split,theme,assist,app-icon,key-style}` — wrap every access in try/catch.
+- **i18n:** every user-facing string goes through `useI18n().t(key)`; add keys to `src/lib/locales/en.ts` (source) and `pt-BR.ts`. Long-form copy (About page) uses the `x(en, pt)` helper; the Smart Assist docs exist as `docs/SMART-ASSIST.md` + `.pt-BR.md`.
+- **Storage keys:** `markdown-preview:{doc,history,split,theme,assist,app-icon,key-style,lang}` — wrap every access in try/catch.
 - **Focus:** call `focus({ preventScroll: true })` — plain focus during slide animations shifts the layout.
 - **Imports inside `src/assist/`** use explicit `.ts` extensions so `node --experimental-strip-types` can run the eval.
 

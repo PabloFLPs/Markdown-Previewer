@@ -29,6 +29,7 @@ export async function suggestFenceLanguage(
       feature: 'codeFence',
       label: `Add language “${d.choice}” to code block`,
       detail: LANGUAGES[d.choice],
+      message: { key: 'suggest.fence', vars: { lang: d.choice } },
       confidence: d.probs[d.choice],
       edit: { from: fence.insertAt, to: fence.insertAt, insert: d.choice },
       expected: '',

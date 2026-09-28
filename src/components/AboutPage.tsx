@@ -22,6 +22,8 @@ import type { AppIconId } from '../lib/appIcons'
 import { keyLabel, type KeyStyle, type KeyToken } from '../lib/keyStyle'
 import { useKeyStyle } from '../hooks/useKeyStyle'
 import { createContext, useContext } from 'react'
+import { useI18n } from '../hooks/useI18n'
+import { LANGS, type Lang } from '../lib/i18n'
 
 const KeyStyleContext = createContext<KeyStyle>('mac')
 
@@ -34,18 +36,24 @@ interface AboutPageProps {
   onAppIconChange: (id: AppIconId) => void
 }
 
-const SHORTCUTS: [KeyToken[], string][] = [
-  [['mod', 'o'], 'Open a file'],
-  [['mod', 'n'], 'New document'],
-  [['mod', 's'], 'Export (.md download)'],
-  [['mod', 'shift', 'c'], 'Copy Markdown'],
-  [['mod', 'shift', 'h'], 'Recent documents'],
-  [['tab'], 'Accept a Smart Assist suggestion'],
-  [['esc'], 'Dismiss a suggestion'],
+const SHORTCUTS: [KeyToken[], string, string][] = [
+  [['mod', 'o'], 'Open a file', 'Abrir um arquivo'],
+  [['mod', 'n'], 'New document', 'Novo documento'],
+  [['mod', 's'], 'Export (.md download)', 'Exportar (download .md)'],
+  [['mod', 'shift', 'c'], 'Copy Markdown', 'Copiar Markdown'],
+  [['mod', 'shift', 'h'], 'Recent documents', 'Documentos recentes'],
+  [['tab'], 'Accept a Smart Assist suggestion', 'Aceitar uma sugestão do Smart Assist'],
+  [['esc'], 'Dismiss a suggestion', 'Dispensar uma sugestão'],
 ]
 
 export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssist, appIcon, onAppIconChange }: AboutPageProps) {
   const { keyStyle, setKeyStyle } = useKeyStyle()
+  const { t, lang, setLang } = useI18n()
+  const pt = lang === 'pt-BR'
+  /** Pick the copy for the current language. */
+  const x = <T,>(en: T, ptBR: T): T => (pt ? ptBR : en)
+  const strong = 'font-medium text-ink dark:text-dark-ink'
+
   return (
     <KeyStyleContext.Provider value={keyStyle}>
     <main className={`flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
@@ -55,116 +63,171 @@ export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssis
           onClick={onBack}
           className="-ml-2 mb-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-ink-muted transition-colors hover:text-accent dark:text-dark-ink-muted dark:hover:text-dark-accent"
         >
-          <ArrowLeft className="h-4 w-4" /> Back
+          <ArrowLeft className="h-4 w-4" /> {t('about.back')}
         </button>
 
-        <h1 className="text-2xl font-semibold tracking-tight">Smart Markdown Previewer</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('app.name')}</h1>
         <p className="mt-3 text-sm leading-6 text-ink-muted dark:text-dark-ink-muted">
-          A quiet place to read and write Markdown — with a small, local assistant that notices what you
-          meant to write and offers to fix it. Nothing you open here ever leaves your browser.
+          {x(
+            'A quiet place to read and write Markdown — with a small, local assistant that notices what you meant to write and offers to fix it. Nothing you open here ever leaves your browser.',
+            'Um lugar tranquilo para ler e escrever Markdown — com um pequeno assistente local que percebe o que você quis escrever e oferece a correção. Nada do que você abre aqui sai do seu navegador.',
+          )}
         </p>
 
-        <Section title="Appearance">
+        <Section title={x('Appearance', 'Aparência')}>
           <p className="mb-4 text-sm leading-6 text-ink-muted dark:text-dark-ink-muted">
-            App icon and accent colour — shown in the browser tab, the header, and across the interface.
+            {x(
+              'App icon and accent colour — shown in the browser tab, the header, and across the interface.',
+              'Ícone do app e cor de destaque — aparecem na aba do navegador, no cabeçalho e em toda a interface.',
+            )}
           </p>
           <AppIconPicker value={appIcon} onChange={onAppIconChange} />
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-sm text-ink-muted dark:text-dark-ink-muted">Keyboard shortcut style</p>
-            <KeyStyleToggle value={keyStyle} onChange={setKeyStyle} />
+            <p className="text-sm text-ink-muted dark:text-dark-ink-muted">{t('appearance.language')}</p>
+            <Segmented<Lang>
+              label={t('appearance.language')}
+              value={lang}
+              onChange={setLang}
+              options={LANGS.map((l) => [l.id, l.label, l.short])}
+            />
+          </div>
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-ink-muted dark:text-dark-ink-muted">{t('appearance.keyStyle')}</p>
+            <Segmented<KeyStyle>
+              label={t('appearance.keyStyle')}
+              value={keyStyle}
+              onChange={setKeyStyle}
+              options={[
+                ['mac', 'macOS', '⌘ ⇧'],
+                ['windows', t('keystyle.windows'), 'Ctrl Shift'],
+              ]}
+            />
           </div>
         </Section>
 
-        <Section title="Smart Assist" badge="local · opt-in">
+        <Section title="Smart Assist" badge={x('local · opt-in', 'local · opcional')}>
           <p className="mb-4 text-sm leading-6 text-ink-muted dark:text-dark-ink-muted">
-            Turn it on from the <strong className="font-medium text-ink dark:text-dark-ink">Assist</strong> menu
-            in the editor header. It never changes your text on its own — it only suggests, and only when it's
-            confident. <Keys k={['tab']} /> accepts, <Keys k={['esc']} /> dismisses, <Keys k={['mod', 'z']} /> undoes.
+            {x(
+              <>
+                Turn it on from the <strong className={strong}>Assist</strong> menu in the editor header. It never
+                changes your text on its own — it only suggests, and only when it's confident.{' '}
+                <Keys k={['tab']} /> accepts, <Keys k={['esc']} /> dismisses, <Keys k={['mod', 'z']} /> undoes.
+              </>,
+              <>
+                Ative pelo menu <strong className={strong}>Assist</strong> no cabeçalho do editor. Ele nunca altera o
+                seu texto sozinho — só sugere, e só quando tem confiança. <Keys k={['tab']} /> aceita,{' '}
+                <Keys k={['esc']} /> dispensa, <Keys k={['mod', 'z']} /> desfaz.
+              </>,
+            )}
           </p>
-          <Feature icon={<Code2 />} title="Code block languages">
-            Leave a <code>```</code> block without a language and it suggests one (TypeScript, Python, Bash, SQL
-            and ~17 more), so your code gets properly labelled.
+          <Feature icon={<Code2 />} title={x('Code block languages', 'Linguagem dos blocos de código')}>
+            {x(
+              <>Leave a <code>```</code> block without a language and it suggests one (TypeScript, Python, Bash, SQL and ~17 more), so your code gets properly labelled.</>,
+              <>Deixe um bloco <code>```</code> sem linguagem e ele sugere uma (TypeScript, Python, Bash, SQL e mais ~17), para o seu código ficar bem identificado.</>,
+            )}
           </Feature>
-          <Feature icon={<Table />} title="Smart paste">
-            Paste CSV, spreadsheet cells, terminal output, bullet lists or JSON — your paste lands untouched,
-            then you're offered a clean Markdown table, list or code block.
+          <Feature icon={<Table />} title={x('Smart paste', 'Colagem inteligente')}>
+            {x(
+              'Paste CSV, spreadsheet cells, terminal output, bullet lists or JSON — your paste lands untouched, then you’re offered a clean Markdown table, list or code block.',
+              'Cole CSV, células de planilha, saída de terminal, listas ou JSON — a colagem entra intacta e depois você recebe a oferta de uma tabela, lista ou bloco de código em Markdown.',
+            )}
           </Feature>
-          <Feature icon={<Heading />} title="Structure hints">
-            Catches the near-misses: <code>**Title**</code> used as a heading, <code>#Heading</code> without a
-            space, <code>-item</code>, <code>1)item</code>, <code>== Title ==</code>.
+          <Feature icon={<Heading />} title={x('Structure hints', 'Dicas de estrutura')}>
+            {x(
+              <>Catches the near-misses: <code>**Title**</code> used as a heading, <code>#Heading</code> without a space, <code>-item</code>, <code>1)item</code>, <code>== Title ==</code>.</>,
+              <>Pega os quase-acertos: <code>**Título**</code> usado como título, <code>#Título</code> sem espaço, <code>-item</code>, <code>1)item</code>, <code>== Título ==</code>.</>,
+            )}
           </Feature>
-          <Feature icon={<Gauge />} title="Readability dots">
-            Each <code>##</code> section gets a subtle dot in the preview — green to red — with a tooltip.
-            Works in English and Portuguese.
+          <Feature icon={<Gauge />} title={x('Readability dots', 'Pontos de legibilidade')}>
+            {x(
+              <>Each <code>##</code> section gets a subtle dot in the preview — green to red — with a tooltip. Works in English and Portuguese.</>,
+              <>Cada seção <code>##</code> ganha um pontinho discreto na pré-visualização — do verde ao vermelho — com uma dica ao passar o mouse. Funciona em português e inglês.</>,
+            )}
           </Feature>
           <p className="mt-4 text-xs leading-5 text-ink-muted dark:text-dark-ink-muted">
-            Modes: <strong className="font-medium">Heuristics</strong> runs instantly with no download.{' '}
-            <strong className="font-medium">Local model</strong> (coming soon) runs a small decision model
-            entirely on your device.
+            {x(
+              <>Modes: <strong className="font-medium">Heuristics</strong> runs instantly with no download. <strong className="font-medium">Local model</strong> (coming soon) runs a small decision model entirely on your device.</>,
+              <>Modos: <strong className="font-medium">Heurísticas</strong> roda na hora, sem download. <strong className="font-medium">Modelo local</strong> (em breve) roda um pequeno modelo de decisão inteiramente no seu dispositivo.</>,
+            )}
           </p>
           <button
             type="button"
             onClick={onTrySmartAssist}
             className="press group mt-5 inline-flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
           >
-            <Sparkles className="hover-sparkle h-4 w-4" /> Try it on a sample document
+            <Sparkles className="hover-sparkle h-4 w-4" /> {x('Try it on a sample document', 'Experimentar num documento de exemplo')}
           </button>
           <button
             type="button"
             onClick={onOpenDocs}
             className="group ml-1 mt-5 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-accent hover:bg-accent/5 dark:text-dark-accent dark:hover:bg-dark-accent/10"
           >
-            <BookOpen className="h-4 w-4" /> How it works
+            <BookOpen className="h-4 w-4" /> {x('How it works', 'Como funciona')}
             <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </Section>
 
-        <Section title="Reading & writing">
-          <Feature icon={<FileText />} title="Open anything Markdown">
-            Drag a <code>.md</code> file anywhere onto the window, use Open, or paste text straight onto the
-            empty page.
+        <Section title={x('Reading & writing', 'Leitura e escrita')}>
+          <Feature icon={<FileText />} title={x('Open anything Markdown', 'Abra qualquer Markdown')}>
+            {x(
+              <>Drag a <code>.md</code> file anywhere onto the window, use Open, or paste text straight onto the empty page.</>,
+              <>Arraste um arquivo <code>.md</code> para qualquer lugar da janela, use Abrir, ou cole o texto direto na página vazia.</>,
+            )}
           </Feature>
-          <Feature icon={<Columns2 />} title="Live split editor">
-            Edit on the right, watch the preview update on the left. Drag the divider to resize; double-click
-            it to reset. On phones the editor comes first.
+          <Feature icon={<Columns2 />} title={x('Live split editor', 'Editor dividido ao vivo')}>
+            {x(
+              'Edit on the right, watch the preview update on the left. Drag the divider to resize; double-click it to reset. On phones the editor comes first.',
+              'Edite à direita e veja a pré-visualização atualizar à esquerda. Arraste o divisor para redimensionar; clique duas vezes para redefinir. No celular, o editor vem primeiro.',
+            )}
           </Feature>
-          <Feature icon={<Save />} title="Autosave">
-            Your current document is kept in this browser, so a refresh never loses work. An asterisk next to
-            the filename means there are changes you haven't exported.
+          <Feature icon={<Save />} title={x('Autosave', 'Salvamento automático')}>
+            {x(
+              'Your current document is kept in this browser, so a refresh never loses work. An asterisk next to the filename means there are changes you haven’t exported.',
+              'O documento atual fica guardado neste navegador, então recarregar a página nunca perde trabalho. Um asterisco ao lado do nome indica alterações ainda não exportadas.',
+            )}
           </Feature>
-          <Feature icon={<History />} title="Recent documents">
-            Every document you open, paste or write is kept in Recent (clock icon, or{' '}
-            <Keys k={['mod', 'shift', 'h']} />) — switch between them freely, nothing is lost. Up to 15, stored only in
-            this browser.
+          <Feature icon={<History />} title={x('Recent documents', 'Documentos recentes')}>
+            {x(
+              <>Every document you open, paste or write is kept in Recent (clock icon, or <Keys k={['mod', 'shift', 'h']} />) — switch between them freely, nothing is lost. Up to 15, stored only in this browser.</>,
+              <>Todo documento que você abre, cola ou escreve fica em Recentes (ícone de relógio, ou <Keys k={['mod', 'shift', 'h']} />) — alterne entre eles à vontade, nada se perde. Até 15, guardados só neste navegador.</>,
+            )}
           </Feature>
-          <Feature icon={<Download />} title="Export & copy">
-            Download the current text as a <code>.md</code> file, or copy the raw Markdown in one click.
+          <Feature icon={<Download />} title={x('Export & copy', 'Exportar e copiar')}>
+            {x(
+              <>Download the current text as a <code>.md</code> file, or copy the raw Markdown in one click.</>,
+              <>Baixe o texto atual como arquivo <code>.md</code>, ou copie o Markdown bruto com um clique.</>,
+            )}
           </Feature>
-          <Feature icon={<ClipboardPaste />} title="GitHub-flavoured Markdown">
-            Tables, task lists, strikethrough and autolinks render out of the box.
+          <Feature icon={<ClipboardPaste />} title={x('GitHub-flavoured Markdown', 'Markdown no estilo GitHub')}>
+            {x(
+              'Tables, task lists, strikethrough and autolinks render out of the box.',
+              'Tabelas, listas de tarefas, tachado e links automáticos funcionam de cara.',
+            )}
           </Feature>
-          <Feature icon={<Moon />} title="Light & dark">
-            Remembered between visits.
+          <Feature icon={<Moon />} title={x('Light & dark', 'Claro e escuro')}>
+            {x('Remembered between visits — as are your language, icon and accent.', 'Lembrado entre visitas — assim como o idioma, o ícone e a cor de destaque.')}
           </Feature>
         </Section>
 
-        <Section title="Keyboard shortcuts">
+        <Section title={x('Keyboard shortcuts', 'Atalhos de teclado')}>
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-sm">
-            {SHORTCUTS.map(([k, v]) => (
+            {SHORTCUTS.map(([k, en, ptBR]) => (
               <div key={k.join('+')} className="contents">
                 <dt>
                   <Keys k={k} />
                 </dt>
-                <dd className="text-ink-muted dark:text-dark-ink-muted">{v}</dd>
+                <dd className="text-ink-muted dark:text-dark-ink-muted">{x(en, ptBR)}</dd>
               </div>
             ))}
           </dl>
         </Section>
 
-        <Section title="Privacy">
-          <Feature icon={<Lock />} title="Local-first, always">
-            No accounts, no server, no uploads. Files are read by your browser and Smart Assist runs on your
-            device. Once loaded, the app works offline.
+        <Section title={x('Privacy', 'Privacidade')}>
+          <Feature icon={<Lock />} title={x('Local-first, always', 'Local em primeiro lugar, sempre')}>
+            {x(
+              'No accounts, no server, no uploads. Files are read by your browser and Smart Assist runs on your device. Once loaded, the app works offline.',
+              'Sem contas, sem servidor, sem uploads. Os arquivos são lidos pelo seu navegador e o Smart Assist roda no seu dispositivo. Depois de carregado, o app funciona offline.',
+            )}
           </Feature>
         </Section>
       </div>
@@ -221,30 +284,37 @@ function Keys({ k }: { k: KeyToken[] }) {
   )
 }
 
-function KeyStyleToggle({ value, onChange }: { value: KeyStyle; onChange: (s: KeyStyle) => void }) {
-  const options: [KeyStyle, string, string][] = [
-    ['mac', 'macOS', '⌘ ⇧'],
-    ['windows', 'Windows / Linux', 'Ctrl Shift'],
-  ]
+function Segmented<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string
+  value: T
+  onChange: (v: T) => void
+  options: [T, string, string][]
+}) {
+  const index = Math.max(0, options.findIndex(([id]) => id === value))
   return (
-    <div role="radiogroup" aria-label="Keyboard shortcut style" className="relative flex w-full rounded-md border border-line p-0.5 sm:inline-flex sm:w-auto dark:border-dark-line">
+    <div role="radiogroup" aria-label={label} className="relative flex w-full rounded-md border border-line p-0.5 sm:inline-flex sm:w-auto dark:border-dark-line">
       <span
         aria-hidden
-        className="absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded bg-accent/10 transition-transform duration-200 ease-out dark:bg-dark-accent/15"
-        style={{ transform: value === 'windows' ? 'translateX(100%)' : 'none' }}
+        className="absolute inset-y-0.5 left-0.5 rounded bg-accent/10 transition-transform duration-200 ease-out dark:bg-dark-accent/15"
+        style={{ width: `calc(${100 / options.length}% - 2px)`, transform: `translateX(${index * 100}%)` }}
       />
-      {options.map(([id, label, hint]) => (
+      {options.map(([id, text, hint]) => (
         <button
           key={id}
           type="button"
           role="radio"
           aria-checked={value === id}
           onClick={() => onChange(id)}
-          className={`relative z-10 flex min-w-0 flex-1 flex-col sm:w-36 sm:flex-none items-center rounded px-3 py-1 text-xs ${
+          className={`relative z-10 flex min-w-0 flex-1 flex-col items-center rounded px-3 py-1 text-xs sm:w-36 sm:flex-none ${
             value === id ? 'text-accent dark:text-dark-accent' : 'text-ink-muted hover:text-ink dark:text-dark-ink-muted dark:hover:text-dark-ink'
           }`}
         >
-          <span className="font-medium">{label}</span>
+          <span className="font-medium">{text}</span>
           <span className="font-mono text-[10px] opacity-70">{hint}</span>
         </button>
       ))}

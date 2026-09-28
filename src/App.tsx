@@ -17,7 +17,8 @@ import {
 import { loadAssistMode, loadSplitRatio, saveAssistMode, saveSplitRatio } from './lib/storage'
 import { AboutPage } from './components/AboutPage'
 import { TechDocsPage } from './components/TechDocsPage'
-import { SAMPLE_DOCUMENT } from './lib/sampleDocument'
+import { getSampleDocument } from './lib/sampleDocument'
+import { useI18n } from './hooks/useI18n'
 import { Presence } from './components/motion'
 import { SuggestionBar } from './components/SuggestionBar'
 import { useAppIcon } from './hooks/useAppIcon'
@@ -48,6 +49,7 @@ function isEditableTarget(target: EventTarget | null): boolean {
 }
 
 export default function App() {
+  const { t, lang } = useI18n()
   const {
     document,
     isDirty,
@@ -215,11 +217,11 @@ export default function App() {
   }, [newDocument])
 
   const handleTrySmartAssist = useCallback(() => {
-    pasteText(SAMPLE_DOCUMENT)
+    pasteText(getSampleDocument(lang))
     handleAssistModeChange(assistMode === 'off' ? 'heuristics' : assistMode)
     closeAbout()
     setViewMode('edit')
-  }, [pasteText, handleAssistModeChange, assistMode, closeAbout])
+  }, [lang, pasteText, handleAssistModeChange, assistMode, closeAbout])
 
   const handleExport = useCallback(() => {
     if (!document) return
@@ -235,7 +237,7 @@ export default function App() {
       if (copiedTimer.current) window.clearTimeout(copiedTimer.current)
       copiedTimer.current = window.setTimeout(() => setCopied(false), COPIED_RESET_MS)
     } else {
-      setError('Failed to copy to clipboard.')
+      setError('error.copyFailed')
     }
   }, [document, setError])
 
@@ -381,7 +383,7 @@ export default function App() {
       <Presence show={isDragging} duration={160} className="pointer-events-none fixed inset-0 z-50">
         <div className="flex h-full items-center justify-center bg-accent/10 backdrop-blur-[1px] dark:bg-dark-accent/10">
           <div className="anim-pop rounded-xl border-2 border-dashed border-accent bg-surface px-10 py-6 text-sm font-medium text-accent dark:border-dark-accent dark:bg-dark-surface dark:text-dark-accent">
-            Drop to open
+            {t('shell.dropToOpen')}
           </div>
         </div>
       </Presence>
@@ -437,7 +439,7 @@ export default function App() {
                 className="inline-flex w-full items-center justify-center gap-2 rounded-md bg-accent px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
               >
                 <Eye className="h-4 w-4" />
-                Preview
+                {t('action.preview')}
               </button>
             </div>
           </>
@@ -450,8 +452,8 @@ export default function App() {
 
       {document && !showAbout && (
         <footer className="anim-fade flex min-h-8 shrink-0 pb-[env(safe-area-inset-bottom)] items-center justify-center gap-4 border-t border-line bg-surface text-xs text-ink-muted dark:border-dark-line dark:bg-dark-surface dark:text-dark-ink-muted">
-          <span>{countWords(document.content)} words</span>
-          <span>{document.content.length} characters</span>
+          <span>{t('shell.words', { n: countWords(document.content).toLocaleString(lang) })}</span>
+          <span>{t('shell.characters', { n: document.content.length.toLocaleString(lang) })}</span>
         </footer>
       )}
 
@@ -462,11 +464,11 @@ export default function App() {
           className="anim-slide-up flex items-center gap-3 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700 shadow-lg dark:border-red-900 dark:bg-red-950 dark:text-red-300"
         >
           <AlertCircle className="h-4 w-4 shrink-0" />
-          <span>{error}</span>
+          <span>{t(error)}</span>
           <button
             type="button"
             onClick={clearError}
-            aria-label="Dismiss error"
+            aria-label={t('shell.dismissError')}
             className="text-red-500 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-200"
           >
             <X className="h-4 w-4" />

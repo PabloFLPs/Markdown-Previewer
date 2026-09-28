@@ -8,6 +8,8 @@
       try {
         var a = localStorage.getItem("markdown-preview:app-icon");
         if (a && a !== "classic" && ["mono", "outline", "sunset"].indexOf(a) >= 0) document.documentElement.dataset.accent = a;
+        var l = localStorage.getItem("markdown-preview:lang");
+        if (l === "pt-BR" || (!l && /^pt\b/i.test(navigator.language))) document.documentElement.lang = "pt-BR";
       } catch (e) {}
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

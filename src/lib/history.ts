@@ -77,22 +77,27 @@ export function findDuplicate(entries: HistoryEntry[], filename: string | null, 
   return entries.find((e) => e.filename === filename && e.content === content)
 }
 
-export function relativeTime(ts: number, now = Date.now()): string {
+export function relativeTime(
+  ts: number,
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  locale?: string,
+  now = Date.now(),
+): string {
   const s = Math.round((now - ts) / 1000)
-  if (s < 45) return 'just now'
+  if (s < 45) return t('time.justNow')
   const m = Math.round(s / 60)
-  if (m < 60) return `${m} min ago`
+  if (m < 60) return t('time.min', { n: m })
   const h = Math.round(m / 60)
-  if (h < 24) return `${h} h ago`
+  if (h < 24) return t('time.hour', { n: h })
   const d = Math.round(h / 24)
-  if (d < 7) return `${d} d ago`
-  return new Date(ts).toLocaleDateString()
+  if (d < 7) return t('time.day', { n: d })
+  return new Date(ts).toLocaleDateString(locale)
 }
 
 /** First heading or first non-empty line — a human title for untitled docs. */
-export function entryTitle(e: Pick<HistoryEntry, 'filename' | 'content'>): string {
+export function entryTitle(e: Pick<HistoryEntry, 'filename' | 'content'>, untitled = 'Untitled'): string {
   if (e.filename) return e.filename
   const heading = /^#{1,6}\s+(.+)$/m.exec(e.content)?.[1]
-  const first = heading ?? e.content.split('\n').find((l) => l.trim())?.trim() ?? 'Untitled'
+  const first = heading ?? e.content.split('\n').find((l) => l.trim())?.trim() ?? untitled
   return first.length > 48 ? `${first.slice(0, 47)}…` : first
 }

@@ -34,6 +34,9 @@ export interface Suggestion {
   feature: FeatureId
   label: string
   detail?: string
+  /** i18n message for the label / detail (UI translates; `label` stays as English fallback). */
+  message?: { key: string; vars?: Record<string, string> }
+  detailKey?: string
   confidence: number
   edit: TextEdit
   /** Guard: the text in [from, to) must still equal this when accepting. */

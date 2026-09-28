@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react'
+import { useI18n } from '../hooks/useI18n'
 import { APP_ICON_IDS, appIconLabel, appIconUrl, type AppIconId } from '../lib/appIcons'
 
 interface AppIconPickerProps {
@@ -7,8 +8,9 @@ interface AppIconPickerProps {
 }
 
 export function AppIconPicker({ value, onChange }: AppIconPickerProps) {
+  const { t } = useI18n()
   return (
-    <div role="radiogroup" aria-label="App icon" className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div role="radiogroup" aria-label={t('appearance.iconLabel')} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {APP_ICON_IDS.map((id) => {
         const selected = id === value
         return (

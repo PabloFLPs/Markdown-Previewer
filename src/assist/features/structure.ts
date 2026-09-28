@@ -2,6 +2,14 @@ import type { DecisionEngine, Suggestion } from '../types.ts'
 import { findStructureCandidates, type StructureKind } from '../prefilter.ts'
 import { hash } from './codeFence.ts'
 
+const KEYS: Record<StructureKind, string> = {
+  'heading-bold': 'suggest.structure.heading',
+  'heading-nospace': 'suggest.structure.heading',
+  'heading-wiki': 'suggest.structure.heading',
+  'list-nospace': 'suggest.structure.list',
+  'ordered-nospace': 'suggest.structure.ordered',
+}
+
 const LABELS: Record<StructureKind, string> = {
   'heading-bold': 'Make this a heading?',
   'heading-nospace': 'Make this a heading?',
@@ -34,6 +42,7 @@ export async function suggestStructure(
       key,
       feature: 'structure',
       label: LABELS[c.kind],
+      message: { key: KEYS[c.kind] },
       detail: `${c.text.trim()}  →  ${c.replacement.trim()}`,
       confidence: p,
       edit: { from: c.lineStart, to: c.lineEnd, insert: c.replacement },

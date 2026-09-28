@@ -1,5 +1,6 @@
 import { FileText, X } from 'lucide-react'
 import { entryTitle, relativeTime, type HistoryEntry } from '../lib/history'
+import { useI18n } from '../hooks/useI18n'
 
 interface HistoryListProps {
   entries: HistoryEntry[]
@@ -11,6 +12,7 @@ interface HistoryListProps {
 
 /** Shared list used by the header menu and the empty state. */
 export function HistoryList({ entries, currentId, onOpen, onRemove, limit }: HistoryListProps) {
+  const { t, lang } = useI18n()
   const items = limit ? entries.slice(0, limit) : entries
   return (
     <ul className="anim-stagger flex flex-col">
@@ -36,11 +38,11 @@ export function HistoryList({ entries, currentId, onOpen, onRemove, limit }: His
               />
               <span className="min-w-0 flex-1">
                 <span className="flex items-baseline gap-1 truncate text-sm text-ink dark:text-dark-ink">
-                  <span className={`truncate ${e.filename ? 'font-mono text-[13px]' : ''}`}>{entryTitle(e)}</span>
-                  {dirty && <span className="text-accent dark:text-dark-accent" title="Not exported">*</span>}
+                  <span className={`truncate ${e.filename ? 'font-mono text-[13px]' : ''}`}>{entryTitle(e, t('doc.untitled'))}</span>
+                  {dirty && <span className="text-accent dark:text-dark-accent" title={t('history.notExported')}>*</span>}
                 </span>
                 <span className="block text-[11px] text-ink-muted dark:text-dark-ink-muted">
-                  {current ? 'Open now' : relativeTime(e.updatedAt)} · {e.content.length.toLocaleString()} chars
+                  {current ? t('history.openNow') : relativeTime(e.updatedAt, t, lang)} · {t('history.chars', { n: e.content.length.toLocaleString(lang) })}
                 </span>
               </span>
             </button>
@@ -48,8 +50,8 @@ export function HistoryList({ entries, currentId, onOpen, onRemove, limit }: His
               <button
                 type="button"
                 onClick={() => onRemove(e.id)}
-                aria-label={`Remove ${entryTitle(e)} from history`}
-                title="Remove from history"
+                aria-label={t('history.removeNamed', { name: entryTitle(e, t('doc.untitled')) })}
+                title={t('history.remove')}
                 className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-muted opacity-0 transition-opacity hover:text-red-600 focus-visible:opacity-100 group-hover/item:opacity-100 dark:text-dark-ink-muted dark:hover:text-red-400"
               >
                 <X className="h-3.5 w-3.5" />

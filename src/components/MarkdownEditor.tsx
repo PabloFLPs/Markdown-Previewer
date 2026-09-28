@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useI18n } from '../hooks/useI18n'
 import type { ClipboardEventHandler, KeyboardEventHandler, ReactEventHandler, ReactNode, RefObject } from 'react'
 
 interface MarkdownEditorProps {
@@ -21,6 +22,7 @@ export function MarkdownEditor({
   onSelect,
   children,
 }: MarkdownEditorProps) {
+  const { t } = useI18n()
   const localRef = useRef<HTMLTextAreaElement>(null)
   const ref = textareaRef ?? localRef
 
@@ -38,7 +40,7 @@ export function MarkdownEditor({
         onPaste={onPaste}
         onSelect={onSelect}
         spellCheck={false}
-        placeholder="Write your Markdown here..."
+        placeholder={t('editor.placeholder')}
         className="h-full w-full resize-none bg-surface px-4 py-6 sm:px-6 sm:py-8 font-mono text-sm leading-7 text-ink caret-accent outline-none placeholder:text-ink-muted dark:bg-dark-surface dark:text-dark-ink dark:caret-dark-accent dark:placeholder:text-dark-ink-muted"
       />
       {children}

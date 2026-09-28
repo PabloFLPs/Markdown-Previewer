@@ -12,6 +12,7 @@ Everything runs in the browser — files never leave your machine.
   per-section readability dots. Suggest-only: `Tab` accepts, `Esc` dismisses, undo still works.
 - **Recent documents** — up to 15, kept in this browser (`⌘/Ctrl ⇧ H`)
 - **Autosave**, export `.md`, copy Markdown, word/char counts
+- **English and Português (BR)** — auto-detected, switchable on the About page, remembered
 - **Appearance** — app icon + accent palette (Classic, Mono, Outline, Sunset), light/dark theme,
   macOS or Windows keyboard-shortcut labels
 - **About page** (`#about`) documenting every feature, with a Smart Assist playground

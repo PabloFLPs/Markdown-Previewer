@@ -66,7 +66,7 @@ export function useMarkdownFile() {
   const openFile = useCallback(
     async (file: File): Promise<boolean> => {
       if (!isMarkdownFile(file.name)) {
-        setError('Please select a Markdown file (.md).')
+        setError('error.notMarkdown')
         return false
       }
       try {
@@ -76,7 +76,7 @@ export function useMarkdownFile() {
         setError(null)
         return true
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to read the file.')
+        setError('error.readFailed')
         return false
       }
     },
