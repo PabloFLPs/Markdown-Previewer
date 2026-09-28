@@ -40,6 +40,15 @@ npm run lint         # oxlint
 npm run eval:assist  # Smart Assist fixture evaluation (Node ≥ 22.6)
 ```
 
+### Link previews
+
+Shared links show a preview card (`public/og-image.png`, 1200×630) on WhatsApp, Slack, Discord, X, etc.
+These services need absolute URLs, so set your deployed URL before building:
+
+```bash
+cp .env.example .env   # then edit VITE_SITE_URL, or set it in your host's env vars
+```
+
 Stack: React 19 + TypeScript + Vite + Tailwind CSS 4, `react-markdown` + `remark-gfm`, `lucide-react`.
 See `AGENTS.md` for architecture and conventions, `docs/SMART-ASSIST.md` for the Smart Assist
 technical documentation (heuristics, Laya), and `SMART-ASSIST — Implementation Context.md` for the original design notes.

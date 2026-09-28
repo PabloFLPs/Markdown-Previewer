@@ -66,7 +66,8 @@ export function applyAppIcon(id: AppIconId, theme: IconTheme = 'light'): void {
   if (id === 'classic') delete document.documentElement.dataset.accent
   else document.documentElement.dataset.accent = id
   const href = appIconUrl(id, theme)
-  for (const rel of ['icon', 'apple-touch-icon']) {
+  // Only the tab icon is swapped: apple-touch-icon must stay a PNG (iOS ignores SVG).
+  for (const rel of ['icon']) {
     let link = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
     if (!link) {
       link = document.createElement('link')
