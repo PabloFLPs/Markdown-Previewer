@@ -395,3 +395,14 @@ button:not(:disabled):active,
 .tech-docs .markdown-body pre {
   overflow-x: auto;
 }
+
+/* App shell: the window never scrolls — each screen scrolls inside its own area,
+   always below the header, so the header width never changes between screens. */
+html,
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+.scroll-area {
+  scrollbar-gutter: stable;
+}

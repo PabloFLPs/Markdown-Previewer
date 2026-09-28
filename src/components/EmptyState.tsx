@@ -29,7 +29,7 @@ export function EmptyState({ isDragging, onOpenFile, onPaste, history, onOpenHis
   }
 
   return (
-    <div className="anim-rise flex flex-1 flex-col items-center justify-center gap-8 p-6">
+    <div className="anim-rise scroll-area flex min-h-0 flex-1 flex-col items-center justify-center-safe gap-8 overflow-y-auto p-6">
       <div
         className={`flex w-full max-w-md flex-col items-center rounded-xl border-2 border-dashed p-10 text-center transition-all duration-200 ${
           isDragging

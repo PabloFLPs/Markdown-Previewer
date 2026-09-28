@@ -14,7 +14,7 @@ interface TechDocsPageProps {
 export function TechDocsPage({ closing = false, onBack }: TechDocsPageProps) {
   const { t, lang } = useI18n()
   return (
-    <main className={`flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
+    <main className={`scroll-area min-h-0 flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
       <div className={`mx-auto w-full max-w-[900px] ${closing ? 'anim-stagger-out' : 'anim-stagger'}`}>
         <div className="flex items-center justify-between px-4 pt-8 sm:px-6 sm:pt-10">
           <button

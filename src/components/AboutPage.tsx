@@ -56,7 +56,7 @@ export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssis
 
   return (
     <KeyStyleContext.Provider value={keyStyle}>
-    <main className={`flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
+    <main className={`scroll-area min-h-0 flex-1 overflow-y-auto ${closing ? 'anim-fade-out' : 'anim-fade'}`}>
       <div className={`mx-auto w-full max-w-[760px] px-4 py-8 sm:px-6 sm:py-10 ${closing ? 'anim-stagger-out' : 'anim-stagger'}`}>
         <button
           type="button"

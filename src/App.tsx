@@ -103,7 +103,6 @@ export default function App() {
       aboutTimer.current = null
       setAboutClosing(false)
       setInfoPage(next)
-      if (next) window.scrollTo(0, 0)
     }, EXIT_MS)
   }, [])
   useEffect(() => {
@@ -349,9 +348,7 @@ export default function App() {
 
   return (
     <div
-      className={`flex flex-col bg-surface text-ink dark:bg-dark-surface dark:text-dark-ink ${
-        editing ? 'h-dvh overflow-clip' : 'min-h-dvh'
-      }`}
+      className="flex h-dvh flex-col overflow-clip bg-surface text-ink dark:bg-dark-surface dark:text-dark-ink"
     >
       <Header
         hasDocument={hasDocument}
@@ -445,7 +442,7 @@ export default function App() {
           </>
         )
       ) : (
-        <main key="preview" className={`flex flex-1 flex-col ${prevView.current === 'edit' ? '' : 'anim-fade'}`}>
+        <main key="preview" className={`scroll-area flex min-h-0 flex-1 flex-col overflow-y-auto ${prevView.current === 'edit' ? '' : 'anim-fade'}`}>
           <MarkdownPreview content={document.content} readability={assist.readability} />
         </main>
       )}
