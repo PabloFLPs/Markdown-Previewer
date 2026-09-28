@@ -1,6 +1,6 @@
 # Smart Assist — Documentação técnica
 
-O Smart Assist é o "radar de escrita" opcional e local do Smart Markdown Previewer. Ele observa o
+O Smart Assist é o "radar de escrita" opcional e local do Marksage. Ele observa o
 editor, detecta um pequeno conjunto de situações corrigíveis e **sugere** uma edição que você pode
 aceitar (`Tab`) ou dispensar (`Esc`). Nada é enviado pela rede e nada é aplicado automaticamente.
 

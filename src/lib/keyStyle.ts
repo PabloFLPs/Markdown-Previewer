@@ -3,7 +3,7 @@
 export type KeyStyle = 'mac' | 'windows'
 export type KeyToken = 'mod' | 'shift' | 'alt' | 'tab' | 'esc' | 'enter' | (string & {})
 
-const KEY = 'markdown-preview:key-style'
+const KEY = 'marksage:key-style'
 
 export function detectKeyStyle(): KeyStyle {
   return typeof navigator !== 'undefined' && /Mac|iP(hone|ad)/.test(navigator.platform) ? 'mac' : 'windows'

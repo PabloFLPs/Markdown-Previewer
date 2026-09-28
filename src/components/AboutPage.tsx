@@ -68,6 +68,7 @@ export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssis
         </button>
 
         <h1 className="text-2xl font-semibold tracking-tight">{t('app.name')}</h1>
+        <p className="mt-1 text-sm font-medium text-accent dark:text-dark-accent">{t('app.tagline')}</p>
         <p className="mt-3 text-sm leading-6 text-ink-muted dark:text-dark-ink-muted">
           {x(
             'A quiet place to read and write Markdown — with a small, local assistant that notices what you meant to write and offers to fix it. Nothing you open here ever leaves your browser.',

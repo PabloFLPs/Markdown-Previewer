@@ -42,7 +42,7 @@ export function appIconUrl(id: AppIconId, theme: IconTheme = 'light'): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
 
-const KEY = 'markdown-preview:app-icon'
+const KEY = 'marksage:app-icon'
 
 export function loadAppIcon(): AppIconId {
   try {

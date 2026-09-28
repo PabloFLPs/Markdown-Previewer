@@ -5,8 +5,8 @@ export interface StoredDocument {
   savedContent: string
 }
 
-const DOC_KEY = 'markdown-preview:doc'
-const SPLIT_KEY = 'markdown-preview:split'
+const DOC_KEY = 'marksage:doc'
+const SPLIT_KEY = 'marksage:split'
 
 export function loadDocument(): StoredDocument | null {
   try {
@@ -64,7 +64,7 @@ export function saveSplitRatio(ratio: number): void {
 }
 
 export type StoredAssistMode = 'off' | 'heuristics' | 'model'
-const ASSIST_KEY = 'markdown-preview:assist'
+const ASSIST_KEY = 'marksage:assist'
 
 export function loadAssistMode(): StoredAssistMode {
   try {

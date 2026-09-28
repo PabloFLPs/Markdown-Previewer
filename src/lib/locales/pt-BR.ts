@@ -2,6 +2,7 @@ import type { en } from './en'
 
 /** Português (Brasil). Missing keys fall back to English. */
 export const pt: Partial<Record<keyof typeof en, string>> = {
+  'app.tagline': 'O editor de Markdown que percebe.',
   'doc.untitled': 'Sem título',
   'doc.unsaved': 'Alterações não salvas',
   'action.edit': 'Editar',

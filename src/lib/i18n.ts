@@ -22,7 +22,7 @@ export function translate(lang: Lang, key: string, vars?: Vars): string {
   return vars ? raw.replace(/\{(\w+)\}/g, (m, k) => (k in vars ? String(vars[k]) : m)) : raw
 }
 
-const KEY = 'markdown-preview:lang'
+const KEY = 'marksage:lang'
 
 export function detectLang(): Lang {
   return typeof navigator !== 'undefined' && /^pt\b/i.test(navigator.language) ? 'pt-BR' : 'en'

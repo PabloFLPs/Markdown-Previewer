@@ -1,6 +1,7 @@
-# Smart Markdown Previewer
+# Marksage
 
-A minimalist, local-first Markdown viewer and editor with a small on-device assistant.
+**The Markdown editor that notices.** A minimalist, local-first Markdown editor with a small
+on-device assistant (Smart Assist).
 Everything runs in the browser — files never leave your machine.
 
 ## Features

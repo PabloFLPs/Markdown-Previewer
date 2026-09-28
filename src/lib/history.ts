@@ -11,7 +11,7 @@ export interface HistoryEntry {
   updatedAt: number
 }
 
-const KEY = 'markdown-preview:history'
+const KEY = 'marksage:history'
 export const HISTORY_LIMIT = 15
 const MAX_ENTRY_CHARS = 400_000 // skip huge docs rather than evict everything else
 const MAX_TOTAL_CHARS = 2_000_000

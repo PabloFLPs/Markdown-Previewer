@@ -3,7 +3,7 @@ import { flushSync } from 'react-dom'
 
 export type Theme = 'light' | 'dark'
 
-const STORAGE_KEY = 'markdown-preview:theme'
+const STORAGE_KEY = 'marksage:theme'
 
 function getInitialTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY)
