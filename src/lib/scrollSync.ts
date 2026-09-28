@@ -105,18 +105,24 @@ export function mapScroll(
   const srcMax = src.scrollHeight - src.clientHeight
   const dstMax = dst.scrollHeight - dst.clientHeight
   if (srcMax <= 0 || dstMax <= 0) return 0
-  // Pin the ends so top/bottom always line up exactly.
-  if (src.scrollTop <= 1) return 0
-  if (src.scrollTop >= srcMax - 1) return dstMax
 
+  // Sliding probe: instead of syncing the *top* edge (which forces a jump at the
+  // end when one side has more content below its last anchor), sync a point that
+  // glides from the top of the viewport (at scroll 0) to the bottom (at the end).
+  // At 0 % both sides are at the top, at 100 % both are at the bottom, and every
+  // position in between is continuous — no pinning, no teleport.
+  const progress = Math.min(1, Math.max(0, src.scrollTop / srcMax))
+  const srcProbe = src.scrollTop + progress * src.clientHeight
   const anchors = previewAnchors(preview)
   const tops = editorLineTops(editor)
-  if (anchors.length === 0 || tops.length === 0) return (src.scrollTop / srcMax) * dstMax
+  if (anchors.length === 0 || tops.length === 0) return progress * dstMax
 
   // Pair each preview anchor with the editor position of the same source line.
   const pairs: [number, number][] = anchors.map((a) => [a.y, tops[Math.min(a.line, tops.length) - 1] ?? 0])
   const points: [number, number][] = [[0, 0], ...pairs, [preview.scrollHeight, editor.scrollHeight]]
   const oriented = from === 'preview' ? points : points.map(([p, e]) => [e, p] as [number, number])
   oriented.sort((a, b) => a[0] - b[0])
-  return Math.max(0, Math.min(dstMax, interp(oriented, src.scrollTop)))
+  // Same probe fraction on the destination side.
+  const dstProbe = interp(oriented, srcProbe)
+  return Math.max(0, Math.min(dstMax, dstProbe - progress * dst.clientHeight))
 }
