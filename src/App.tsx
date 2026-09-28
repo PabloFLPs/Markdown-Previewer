@@ -82,7 +82,7 @@ export default function App() {
     onChange: updateContent,
   })
 
-  const { icon: appIcon, setIcon: setAppIcon } = useAppIcon()
+  const { icon: appIcon, setIcon: setAppIcon } = useAppIcon(theme)
   // Info pages: About (#about) and the Smart Assist technical docs (#smart-assist).
   const [infoPage, setInfoPage] = useState<InfoPage | null>(pageFromHash)
   const [aboutClosing, setAboutClosing] = useState(false)
@@ -368,7 +368,7 @@ export default function App() {
         assistStatus={assist.status}
         onAssistModeChange={handleAssistModeChange}
         onAbout={openAbout}
-        appIconSrc={appIconUrl(appIcon)}
+        appIconSrc={appIconUrl(appIcon, theme)}
         history={recent}
         currentDocId={document?.id}
         onOpenHistory={handleOpenHistory}
@@ -396,6 +396,7 @@ export default function App() {
           onTrySmartAssist={handleTrySmartAssist}
           appIcon={appIcon}
           onAppIconChange={setAppIcon}
+          theme={theme}
         />
       ) : !document ? (
         <EmptyState

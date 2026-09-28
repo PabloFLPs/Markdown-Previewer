@@ -5,9 +5,10 @@ import { APP_ICON_IDS, appIconLabel, appIconUrl, type AppIconId } from '../lib/a
 interface AppIconPickerProps {
   value: AppIconId
   onChange: (id: AppIconId) => void
+  theme: 'light' | 'dark'
 }
 
-export function AppIconPicker({ value, onChange }: AppIconPickerProps) {
+export function AppIconPicker({ value, onChange, theme }: AppIconPickerProps) {
   const { t } = useI18n()
   return (
     <div role="radiogroup" aria-label={t('appearance.iconLabel')} className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -27,7 +28,7 @@ export function AppIconPicker({ value, onChange }: AppIconPickerProps) {
             }`}
           >
             <img
-              src={appIconUrl(id)}
+              src={appIconUrl(id, theme)}
               alt=""
               className="h-10 w-10 transition-transform duration-200 ease-out group-hover:-translate-y-0.5 group-hover:scale-110 group-hover:-rotate-3"
             />

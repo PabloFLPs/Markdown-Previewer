@@ -34,6 +34,7 @@ interface AboutPageProps {
   onTrySmartAssist: () => void
   appIcon: AppIconId
   onAppIconChange: (id: AppIconId) => void
+  theme: 'light' | 'dark'
 }
 
 const SHORTCUTS: [KeyToken[], string, string][] = [
@@ -46,7 +47,7 @@ const SHORTCUTS: [KeyToken[], string, string][] = [
   [['esc'], 'Dismiss a suggestion', 'Dispensar uma sugestão'],
 ]
 
-export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssist, appIcon, onAppIconChange }: AboutPageProps) {
+export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssist, appIcon, onAppIconChange, theme }: AboutPageProps) {
   const { keyStyle, setKeyStyle } = useKeyStyle()
   const { t, lang, setLang } = useI18n()
   const pt = lang === 'pt-BR'
@@ -81,7 +82,7 @@ export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssis
               'Ícone do app e cor de destaque — aparecem na aba do navegador, no cabeçalho e em toda a interface.',
             )}
           </p>
-          <AppIconPicker value={appIcon} onChange={onAppIconChange} />
+          <AppIconPicker value={appIcon} onChange={onAppIconChange} theme={theme} />
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-ink-muted dark:text-dark-ink-muted">{t('appearance.language')}</p>
             <Segmented<Lang>

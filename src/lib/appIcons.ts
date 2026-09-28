@@ -4,18 +4,30 @@ export type AppIconId = 'classic' | 'mono' | 'outline' | 'sunset'
 
 const M = 'M9 22V10l7 7 7-7v12'
 
-const ICONS: Record<AppIconId, { label: string; svg: string }> = {
-  classic: {
-    label: 'Classic',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#2563eb"/><path d="${M}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-  },
+export type IconTheme = 'light' | 'dark'
+
+/** Mono and Outline follow the colour theme so they match the accent palette. */
+const THEMED: Record<'mono' | 'outline', { label: string; svg: Record<IconTheme, string> }> = {
   mono: {
     label: 'Mono',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#0d1117"/><path d="${M}" fill="none" stroke="#e6edf3" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    svg: {
+      light: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#27272a"/><path d="${M}" fill="none" stroke="#fafafa" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      dark: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#e4e4e7"/><path d="${M}" fill="none" stroke="#0d1117" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    },
   },
   outline: {
     label: 'Outline',
-    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="#fff" stroke="#0d9488" stroke-width="2"/><path d="${M}" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    svg: {
+      light: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="#ffffff" stroke="#0d9488" stroke-width="2"/><path d="${M}" fill="none" stroke="#0d9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      dark: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="#0d1117" stroke="#2dd4bf" stroke-width="2"/><path d="${M}" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    },
+  },
+}
+
+const ICONS: Record<'classic' | 'sunset', { label: string; svg: string }> = {
+  classic: {
+    label: 'Classic',
+    svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#2563eb"/><path d="${M}" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   },
   sunset: {
     label: 'Sunset',
@@ -23,16 +35,19 @@ const ICONS: Record<AppIconId, { label: string; svg: string }> = {
   },
 }
 
-export const APP_ICON_IDS = Object.keys(ICONS) as AppIconId[]
-export const appIconLabel = (id: AppIconId) => ICONS[id].label
-export const appIconUrl = (id: AppIconId) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(ICONS[id].svg)}`
+export const APP_ICON_IDS: AppIconId[] = ['classic', 'mono', 'outline', 'sunset']
+export const appIconLabel = (id: AppIconId) => (id === 'mono' || id === 'outline' ? THEMED[id].label : ICONS[id].label)
+export function appIconUrl(id: AppIconId, theme: IconTheme = 'light'): string {
+  const svg = id === 'mono' || id === 'outline' ? THEMED[id].svg[theme] : ICONS[id].svg
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
 
 const KEY = 'markdown-preview:app-icon'
 
 export function loadAppIcon(): AppIconId {
   try {
     const v = localStorage.getItem(KEY) as AppIconId | null
-    return v && v in ICONS ? v : 'classic'
+    return v && APP_ICON_IDS.includes(v) ? v : 'classic'
   } catch {
     return 'classic'
   }
@@ -47,10 +62,10 @@ export function saveAppIcon(id: AppIconId): void {
 }
 
 /** Swap the tab/favicon (and apple-touch-icon) and the accent palette at runtime. */
-export function applyAppIcon(id: AppIconId): void {
+export function applyAppIcon(id: AppIconId, theme: IconTheme = 'light'): void {
   if (id === 'classic') delete document.documentElement.dataset.accent
   else document.documentElement.dataset.accent = id
-  const href = appIconUrl(id)
+  const href = appIconUrl(id, theme)
   for (const rel of ['icon', 'apple-touch-icon']) {
     let link = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`)
     if (!link) {
