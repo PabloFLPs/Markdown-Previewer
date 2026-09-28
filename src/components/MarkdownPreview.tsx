@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import type { Components } from 'react-markdown'
 import type { ReadabilityMark } from '../assist/types'
+import { rehypeSourceLines } from '../lib/scrollSync'
 import { useI18n } from '../hooks/useI18n'
 
 interface MarkdownPreviewProps {
@@ -41,7 +42,7 @@ export function MarkdownPreview({ content, readability }: MarkdownPreviewProps) 
 
   return (
     <div className="markdown-body mx-auto w-full max-w-[900px] px-4 py-8 sm:px-6 sm:py-10">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeSourceLines]} components={components}>
         {content}
       </ReactMarkdown>
     </div>

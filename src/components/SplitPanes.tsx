@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { ReactNode } from 'react'
+import type { ReactNode, RefObject } from 'react'
 import { useI18n } from '../hooks/useI18n'
 
 const MIN_RATIO = 20
@@ -14,13 +14,15 @@ interface SplitPanesProps {
   closing?: boolean
   /** Disable the width animation (e.g. very large documents, where reflowing every frame is costly). */
   animateWidth?: boolean
+  /** Scroll container of the left (preview) pane — used for scroll sync. */
+  leftRef?: RefObject<HTMLDivElement | null>
 }
 
 function clamp(value: number): number {
   return Math.min(MAX_RATIO, Math.max(MIN_RATIO, value))
 }
 
-export function SplitPanes({ ratio, onRatioChange, left, right, closing = false, animateWidth = true }: SplitPanesProps) {
+export function SplitPanes({ ratio, onRatioChange, left, right, closing = false, animateWidth = true, leftRef }: SplitPanesProps) {
   const { t } = useI18n()
   const containerRef = useRef<HTMLDivElement>(null)
   // Start with the preview at full width, then animate to `ratio` on the next frame.
@@ -62,6 +64,7 @@ export function SplitPanes({ ratio, onRatioChange, left, right, closing = false,
   return (
     <div ref={containerRef} className="flex min-h-0 min-w-0 flex-1">
       <div
+        ref={leftRef}
         style={{
           width: `${width}%`,
           transition: dragging || !animateWidth ? 'none' : 'width 260ms cubic-bezier(0.22, 1, 0.36, 1)',

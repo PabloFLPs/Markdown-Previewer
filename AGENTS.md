@@ -33,6 +33,7 @@ scripts/eval-assist.ts    fixture evaluation for Smart Assist
 - **Buttons:** header buttons lift on hover automatically (`header button:hover`); non-button controls use `.press`.
 - **i18n:** every user-facing string goes through `useI18n().t(key)`; add keys to `src/lib/locales/en.ts` (source) and `pt-BR.ts`. Long-form copy (About page) uses the `x(en, pt)` helper; the Smart Assist docs exist as `docs/SMART-ASSIST.md` + `.pt-BR.md`.
 - **Storage keys:** `marksage:{doc,history,split,theme,assist,app-icon,key-style,lang}` — wrap every access in try/catch. (Renamed from `markdown-preview:*`; `index.html` migrates old keys once on load.)
+- **Scroll sync:** preview blocks carry `data-line` (rehype plugin in `lib/scrollSync.ts`); the editor side is measured with a hidden mirror. Keep `rehypeSourceLines` on the preview.
 - **Focus:** call `focus({ preventScroll: true })` — plain focus during slide animations shifts the layout.
 - **Imports inside `src/assist/`** use explicit `.ts` extensions so `node --experimental-strip-types` can run the eval.
 

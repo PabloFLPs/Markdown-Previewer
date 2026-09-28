@@ -23,6 +23,7 @@ import { Presence } from './components/motion'
 import { SuggestionBar } from './components/SuggestionBar'
 import { useAppIcon } from './hooks/useAppIcon'
 import { appIconUrl } from './lib/appIcons'
+import { useScrollSync } from './hooks/useScrollSync'
 import { useSmartAssist } from './assist/useSmartAssist'
 import type { AssistMode } from './assist/types'
 import type { ViewMode } from './lib/viewMode'
@@ -337,6 +338,9 @@ export default function App() {
 
   const hasDocument = document !== null
   const editing = hasDocument && viewMode === 'edit'
+  // Split view: preview and editor scroll together (desktop only).
+  const previewPaneRef = useRef<HTMLDivElement>(null)
+  useScrollSync(previewPaneRef, textareaRef, editing && isDesktop && !showAbout)
   // Previous screen — lets the preview skip its fade when it's revealed by the editor closing.
   const view = showAbout ? 'about' : !hasDocument ? 'empty' : editing ? 'edit' : 'preview'
   const prevView = useRef(view)
@@ -411,6 +415,7 @@ export default function App() {
         isDesktop ? (
           <SplitPanes
             closing={editorClosing}
+            leftRef={previewPaneRef}
             animateWidth={document.content.length < 40_000}
             ratio={splitRatio}
             onRatioChange={handleChangeSplitRatio}
