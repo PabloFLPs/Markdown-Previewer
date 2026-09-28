@@ -1,5 +1,7 @@
 import {
   ArrowLeft,
+  ArrowRight,
+  BookOpen,
   ClipboardPaste,
   Code2,
   Columns2,
@@ -25,6 +27,7 @@ const KeyStyleContext = createContext<KeyStyle>('mac')
 
 interface AboutPageProps {
   onBack: () => void
+  onOpenDocs: () => void
   closing?: boolean
   onTrySmartAssist: () => void
   appIcon: AppIconId
@@ -41,7 +44,7 @@ const SHORTCUTS: [KeyToken[], string][] = [
   [['esc'], 'Dismiss a suggestion'],
 ]
 
-export function AboutPage({ closing = false, onBack, onTrySmartAssist, appIcon, onAppIconChange }: AboutPageProps) {
+export function AboutPage({ closing = false, onBack, onOpenDocs, onTrySmartAssist, appIcon, onAppIconChange }: AboutPageProps) {
   const { keyStyle, setKeyStyle } = useKeyStyle()
   return (
     <KeyStyleContext.Provider value={keyStyle}>
@@ -105,6 +108,14 @@ export function AboutPage({ closing = false, onBack, onTrySmartAssist, appIcon, 
             className="press group mt-5 inline-flex items-center gap-2 rounded-md bg-accent px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-strong dark:bg-dark-accent dark:text-dark-surface dark:hover:bg-dark-accent-strong"
           >
             <Sparkles className="hover-sparkle h-4 w-4" /> Try it on a sample document
+          </button>
+          <button
+            type="button"
+            onClick={onOpenDocs}
+            className="group ml-1 mt-5 inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-accent hover:bg-accent/5 dark:text-dark-accent dark:hover:bg-dark-accent/10"
+          >
+            <BookOpen className="h-4 w-4" /> How it works
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-0.5" />
           </button>
         </Section>
 

@@ -16,6 +16,7 @@ import {
 } from './lib/file'
 import { loadAssistMode, loadSplitRatio, saveAssistMode, saveSplitRatio } from './lib/storage'
 import { AboutPage } from './components/AboutPage'
+import { TechDocsPage } from './components/TechDocsPage'
 import { SAMPLE_DOCUMENT } from './lib/sampleDocument'
 import { Presence } from './components/motion'
 import { SuggestionBar } from './components/SuggestionBar'
@@ -26,6 +27,12 @@ import type { AssistMode } from './assist/types'
 import type { ViewMode } from './lib/viewMode'
 
 const EXIT_MS = 220
+
+type InfoPage = 'about' | 'docs'
+function pageFromHash(): InfoPage | null {
+  const h = window.location.hash
+  return h === '#about' ? 'about' : h === '#smart-assist' ? 'docs' : null
+}
 const DESKTOP_QUERY = '(min-width: 768px)'
 const COPIED_RESET_MS = 1600
 
@@ -74,34 +81,49 @@ export default function App() {
   })
 
   const { icon: appIcon, setIcon: setAppIcon } = useAppIcon()
-  const [showAbout, setShowAbout] = useState(() => window.location.hash === '#about')
+  // Info pages: About (#about) and the Smart Assist technical docs (#smart-assist).
+  const [infoPage, setInfoPage] = useState<InfoPage | null>(pageFromHash)
   const [aboutClosing, setAboutClosing] = useState(false)
+  const infoRef = useRef(infoPage)
+  infoRef.current = infoPage
   const aboutTimer = useRef<number | null>(null)
-  // Play the exit animation, then unmount.
-  const hideAbout = useCallback(() => {
-    if (aboutTimer.current) return
+  const showAbout = infoPage !== null
+  // Play the current page's exit animation, then show `next` (or nothing).
+  const goToInfo = useCallback((next: InfoPage | null) => {
+    if (infoRef.current === next) return
+    if (infoRef.current === null) {
+      setInfoPage(next)
+      return
+    }
+    if (aboutTimer.current) window.clearTimeout(aboutTimer.current)
     setAboutClosing(true)
     aboutTimer.current = window.setTimeout(() => {
       aboutTimer.current = null
       setAboutClosing(false)
-      setShowAbout(false)
+      setInfoPage(next)
+      if (next) window.scrollTo(0, 0)
     }, EXIT_MS)
   }, [])
   useEffect(() => {
-    const onHash = () => {
-      if (window.location.hash === '#about') setShowAbout(true)
-      else hideAbout()
-    }
+    const onHash = () => goToInfo(pageFromHash())
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
-  }, [hideAbout])
+  }, [goToInfo])
   const openAbout = useCallback(() => {
     window.location.hash = 'about'
   }, [])
+  const openDocs = useCallback(() => {
+    window.location.hash = 'smart-assist'
+  }, [])
   const closeAbout = useCallback(() => {
+    // Docs → back to About; About → back to the app.
+    if (infoRef.current === 'docs') {
+      window.location.hash = 'about'
+      return
+    }
     window.history.replaceState(null, '', window.location.pathname + window.location.search)
-    hideAbout()
-  }, [hideAbout])
+    goToInfo(null)
+  }, [goToInfo])
 
   // Editor enter/exit: the pane slides in from the right, and back out on close.
   const [editorClosing, setEditorClosing] = useState(false)
@@ -364,8 +386,12 @@ export default function App() {
         </div>
       </Presence>
 
-      {showAbout ? (
+      {infoPage === 'docs' ? (
+        <TechDocsPage key="docs" closing={aboutClosing} onBack={closeAbout} />
+      ) : showAbout ? (
         <AboutPage
+          key="about"
+          onOpenDocs={openDocs}
           closing={aboutClosing}
           onBack={closeAbout}
           onTrySmartAssist={handleTrySmartAssist}

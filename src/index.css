@@ -386,3 +386,12 @@ button:not(:disabled):active,
     transition-duration: 1ms !important;
   }
 }
+
+/* Technical docs page: wide tables/diagrams scroll inside themselves on small screens. */
+.tech-docs .markdown-body table {
+  display: block;
+  overflow-x: auto;
+}
+.tech-docs .markdown-body pre {
+  overflow-x: auto;
+}

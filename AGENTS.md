@@ -36,7 +36,7 @@ scripts/eval-assist.ts    fixture evaluation for Smart Assist
 - **Imports inside `src/assist/`** use explicit `.ts` extensions so `node --experimental-strip-types` can run the eval.
 
 ## Smart Assist
-Full technical documentation: `docs/SMART-ASSIST.md` — keep it in sync when changing heuristics or Laya.
+Full technical documentation: `docs/SMART-ASSIST.md` — also rendered in-app at `#smart-assist` (About → "How it works"), so keep it user-readable and in sync when changing heuristics or Laya.
 - Contract: `DecisionEngine` (`choice` / `score` / `noul`) in `assist/types.ts`. The engine decides; our code edits.
 - `HeuristicEngine` (always available) routes by question id (`assist/questions.ts`) to `assist/heuristics/*`.
 - `LayaEngine` + `laya.worker.ts`: worker client ready; `loadModel()` is a TODO (model/export undecided).
