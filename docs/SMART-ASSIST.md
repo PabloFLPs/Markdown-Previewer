@@ -5,8 +5,9 @@ editor, detects a small set of fixable situations, and **suggests** an edit the 
 (`Tab`) or dismiss (`Esc`). Nothing is sent over the network and nothing is ever applied
 automatically.
 
-> Design origin and open questions: `SMART-ASSIST — Implementation Context.md` (repo root).
-> Contributor conventions: `AGENTS.md`. Portuguese version: `docs/SMART-ASSIST.pt-BR.md`.
+> This page is for the curious: how the assistant decides, why it stays quiet, and what "Laya"
+> is. Some familiarity with programming helps, but you don't need the source code — it's on
+> [GitHub](https://github.com/PabloFLPs/Marksage) if you want to dig in.
 
 ---
 
@@ -21,7 +22,7 @@ answers a *typed question over a set of answers fixed up front*:
 | `score` | "Where on this ordered scale?" | an index + a probability per step |
 | `noul` | "Is this statement true?" | a single probability in `[0, 1]` |
 
-Because the answer space is closed, the output can never be malformed. The rule of the codebase:
+Because the answer space is closed, the output can never be malformed. The guiding rule:
 
 > **The engine decides; our TypeScript code acts.** If you can't list the possible answers up
 > front, it's not a Smart Assist job.
@@ -34,7 +35,7 @@ spell-check" (deterministic tools such as `nspell`/`remark-lint` are the right t
 ## 2. Architecture
 
 ```
-textarea ──(debounce 400 ms / paste / 2 s idle)──► prefilter.ts   "is there a candidate?"
+textarea ──(debounce 400 ms / paste / 2 s idle)──► pre-filter     "is there a candidate?"
                                                      │  no → stop (no engine call)
                                                      ▼
                                               DecisionEngine
@@ -50,21 +51,17 @@ textarea ──(debounce 400 ms / paste / 2 s idle)──► prefilter.ts   "is 
                          SuggestionBar  →  Tab: apply edit  /  Esc: dismiss
 ```
 
-### 2.1 Files
+### 2.1 Building blocks
 
-| File | Role |
+| Piece | What it does |
 |---|---|
-| `src/assist/types.ts` | `DecisionEngine`, `Decision`, `Suggestion`, `passesGate`, `softmax`, `toDecision` |
-| `src/assist/questions.ts` | Stable question ids (`Q`), model prompts, option sets (languages, paste kinds, readability scale) |
-| `src/assist/prefilter.ts` | Deterministic candidate detection — fence-aware line splitting, bare fences, structure candidates, `##` sections |
-| `src/assist/heuristicEngine.ts` | `DecisionEngine` backed by `heuristics/*`, routed by question id |
-| `src/assist/heuristics/*.ts` | Scorers: `language`, `paste`, `structure`, `readability` |
-| `src/assist/features/*.ts` | F1–F4: turn decisions into `Suggestion`s / readability marks |
-| `src/assist/convert.ts` | Deterministic converters (CSV/TSV/aligned text → table, list, code block) |
-| `src/assist/layaEngine.ts` + `laya.worker.ts` | Worker client + worker for the Laya model (runtime not wired yet) |
-| `src/assist/useSmartAssist.ts` | React hook: engine lifecycle, debouncing, cancellation, keyboard, paste, accept/dismiss |
-| `src/components/SuggestionBar.tsx`, `AssistToggle.tsx` | UI |
-| `scripts/eval-assist.ts` + `src/assist/__fixtures__/` | Offline evaluation |
+| **Pre-filter** | Cheap, deterministic checks that find *candidates* (an untagged code block, a multi-line paste, a near-miss heading). No candidate → nothing else runs. |
+| **Decision engine** | Answers the typed question for a candidate. Two interchangeable engines: *heuristics* (today) and the *Laya* model (planned). |
+| **Confidence gate** | Drops any answer that isn't clearly ahead of the alternatives. |
+| **Features** | Turn a confident decision into a concrete, reversible edit (F1–F4 below). |
+| **Converters** | Plain code that performs the edit — building a table, a list, a fenced block. The engine never writes text. |
+| **Suggestion bar** | Shows one suggestion at a time; you accept or dismiss it. |
+| **Evaluation set** | Hand-labelled examples used to measure each feature before it ships. |
 
 ### 2.2 The engine contract
 
@@ -126,14 +123,15 @@ is evaluated first (max 3 per run).
 **Options.** 20 languages + `plaintext`: ts, js, python, bash, json, html, css, sql, go, rust,
 java, c, cpp, csharp, ruby, php, yaml, markdown, diff, dockerfile.
 
-**Heuristic** (`heuristics/language.ts`). Each language has weighted regex rules that behave like
+**Heuristic**. Each language has weighted regex rules that behave like
 logits — each matching rule adds its weight once:
 
 - *Distinctive* evidence gets high weights (`package main` → Go +4, `<?php` → PHP +6,
   `if err != nil` → Go +4, `#!/bin/bash` → Bash +5, `@@ -1,2 +1,2 @@` → diff +5).
 - *Shared* syntax (braces, `=>`, `import … from`) gets small weights across languages.
 - *Negative* rules subtract contradicting evidence (e.g. TS type annotations penalise plain JS).
-- *Structural overrides:* valid `JSON.parse` → json +6; TS vs JS is decided by TS-only evidence
+- *Structural overrides:* content that parses as JSON → json +6 — including the relaxed
+  "JSON with comments / trailing commas" dialect used by config files (+5); TS vs JS is decided by TS-only evidence
   (type annotations, `interface`, `import type`, `as const`), since TS is a superset of JS.
 - `plaintext` is scored from a **code-likeness** ratio (symbol density vs. words, minus sentence
   punctuation), so prose in any language (including pt-BR) stays untagged.
@@ -149,11 +147,11 @@ untouched**; the suggestion offers to convert the pasted range afterwards.
 
 **Options.** `prose | table | csv | tsv | list | code | json`.
 
-**Heuristic** (`heuristics/paste.ts`):
+**Heuristic**:
 
 | Kind | Evidence |
 |---|---|
-| `json` | `JSON.parse` succeeds on text starting with `{`/`[` (+8) |
+| `json` | parses as JSON (strict, or with comments / trailing commas) — even a single-line, minified payload |
 | `tsv` | tab count identical on every line (+7) |
 | `csv` | consistent comma-cell count (quote-aware), short cells; penalised by sentences and "wordy" cells (> 5 words) |
 | `table` | column gutters (2+ spaces) shared by every line — terminal / `kubectl`-style output |
@@ -161,8 +159,8 @@ untouched**; the suggestion offers to convert the pasted range afterwards.
 | `code` | reuses F1 language scores + structural code shape (lines ending in `{ } ;`, indentation) |
 | `prose` | lines with sentence punctuation and ≥ 8 words |
 
-**Action** (`convert.ts`): CSV/TSV/aligned → GFM table (first row = header, `|` escaped); list →
-`- item` (existing bullets normalised); JSON → ```` ```json ````; code → fenced block, tagged with
+**Action**: CSV/TSV/aligned → GFM table (first row = header, `|` escaped); list →
+`- item` (existing bullets normalised); JSON → ```` ```json ```` (minified JSON is pretty-printed first); code → fenced block, tagged with
 the F1 language only if *that* decision also passes the gate. `prose` never suggests anything.
 
 ### F3 — Structure intent (`noul`)
@@ -177,7 +175,7 @@ the F1 language only if *that* decision also passes the gate. `prose` never sugg
 | `-item`, `*item`, `+item` | `- item` |
 | `1)item`, `1.item` | `1) item` |
 
-**Heuristic** (`heuristics/structure.ts`). The engine gets the ±2 lines of context and a statement
+**Heuristic**. The engine gets the ±2 lines of context and a statement
 such as *"The line "**Installation**" is meant to be a section heading."*. The probability starts
 from a per-kind prior and is adjusted by evidence: long bold lines or lines ending in `.`/`!`/`?`
 are emphasis, not headings; `-5 degrees` is a negative number; `*word*` is emphasis; neighbouring
@@ -187,7 +185,7 @@ list items raise confidence for list fixes.
 
 **Trigger.** 2 s idle; one decision per `##` section with ≥ 30 words.
 
-**Heuristic** (`heuristics/readability.ts`). **LIX**, chosen because it is language-agnostic
+**Heuristic**. **LIX**, chosen because it is language-agnostic
 (works for English and Portuguese, unlike Flesch variants tuned to English syllables):
 
 ```
@@ -220,7 +218,7 @@ meaningful win.
 ### 4.2 How it plugs in
 
 ```
-useSmartAssist ──► LayaEngine (main thread) ──postMessage──► laya.worker.ts (Web Worker)
+editor ──► LayaEngine (main thread) ──postMessage──► Laya worker (Web Worker)
                      │  id-tagged requests                      │  load → WebGPU, else WASM
                      │  cancelAll() on new input                │  choice / score / noul
                      ◄──────────── { id, ok, result } / progress ┘
@@ -242,14 +240,14 @@ useSmartAssist ──► LayaEngine (main thread) ──postMessage──► lay
 | Piece | State |
 |---|---|
 | `DecisionEngine` contract, prompts, gate | ✅ done |
-| Worker client (`layaEngine.ts`) with cancellation + progress | ✅ done |
-| Worker (`laya.worker.ts`) protocol | ✅ done |
+| Worker client with cancellation + progress | ✅ done |
+| Worker protocol | ✅ done |
 | Model runtime inside `loadModel()` / `infer()` | ⏳ TODO |
 | UI option "Local model" | disabled ("soon") until the runtime lands |
 
-To wire it: implement `loadModel()` in `laya.worker.ts` (transformers.js or onnxruntime-web,
-preferring WebGPU and falling back to WASM), return an object with
-`infer(op, payload)`, then enable the `model` option in `AssistToggle.tsx`.
+**What's left:** plugging an ONNX runtime (transformers.js or onnxruntime-web, preferring
+WebGPU with a WASM fallback) into the worker. The "Local model" option stays disabled until the
+model beats the heuristics on the evaluation set.
 
 ### 4.4 Before enabling it (open questions)
 
@@ -263,36 +261,31 @@ preferring WebGPU and falling back to WASM), return an object with
 
 ---
 
-## 5. Evaluation
+## 5. How it's measured
 
-```bash
-npm run eval:assist
-```
+Every feature is checked against a hand-labelled set of examples — code snippets in many
+languages, real-world pastes (CSV, spreadsheet cells, terminal output, JSON), near-miss lines —
+including Portuguese prose and mixed-language text. For each feature we track:
 
-Runs every fixture through the engine and reports, per feature: argmax accuracy, how many
-suggestions pass the gate, **precision when shown** (the number users actually feel), a
-calibration table by confidence bucket, per-decision latency, and each miss.
+- **Accuracy** — how often the top answer is right;
+- **Shown** — how many suggestions pass the confidence gate;
+- **Precision when shown** — how often a suggestion you actually *see* is right (the number that matters most);
+- **Calibration** — whether "90 % confident" really means ~90 % correct;
+- **Latency** per decision.
 
-| Feature | Fixtures | Accuracy | Shown | Precision when shown |
+| Feature | Examples | Accuracy | Shown | Precision when shown |
 |---|---|---|---|---|
-| F1 | 40 | 100 % | 27 | 100 % |
-| F2 | 14 | 100 % | 10 | 100 % |
-| F3 | 10 | 100 % | 6 | 100 % |
+| F1 code-block language | 42 | 100 % | 29 | 100 % |
+| F2 smart paste | 15 | 100 % | 11 | 100 % |
+| F3 structure hints | 10 | 100 % | 6 | 100 % |
 
-These fixtures were written alongside the heuristics, so the numbers are optimistic. Grow them
-with real-world samples (target 60 / 30 / 30) — and add a Laya column — before comparing engines.
+Heuristic decisions take well under a millisecond. The set was written alongside the heuristics,
+so these numbers are optimistic; it keeps growing with real-world samples — and Laya will have
+to beat these numbers on the same set before it's switched on.
 
 ---
 
-## 6. Extending Smart Assist
+## 6. Dig deeper
 
-1. **Pre-filter** the candidate deterministically in `prefilter.ts` (pure, cheap).
-2. Add a **question id** + prompt + option set in `questions.ts`.
-3. Add a **heuristic scorer** in `heuristics/` and route it in `heuristicEngine.ts`.
-4. Add a **feature** in `features/` returning a `Suggestion` with an `expected` guard and a gate.
-5. Wire it in `useSmartAssist.ts` (debounced effect, paste handler or idle effect).
-6. Add **fixtures** and extend `scripts/eval-assist.ts`.
-7. Document it on the **About page** and in this file (both languages), and add its UI strings to `src/lib/locales/`.
-
-Tuning tips: prefer adding a distinctive rule over raising a shared weight; when a fix makes one
-fixture pass, re-run the whole eval — heuristics interact through softmax.
+Curious how a specific rule works, or want to contribute a new one? The full source — engine,
+heuristics, evaluation set and contributor notes — is on [GitHub](https://github.com/PabloFLPs/Marksage).
