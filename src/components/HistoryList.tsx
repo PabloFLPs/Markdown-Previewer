@@ -25,7 +25,7 @@ export function HistoryList({ entries, currentId, onOpen, onRemove, limit }: His
               type="button"
               onClick={() => onOpen(e)}
               disabled={current}
-              className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 pr-8 text-left transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 pr-8 pointer-coarse:pr-11 text-left transition-colors ${
                 current
                   ? 'cursor-default bg-accent/5 dark:bg-dark-accent/10'
                   : 'hover:bg-surface-soft dark:hover:bg-dark-surface-raised'
@@ -52,7 +52,7 @@ export function HistoryList({ entries, currentId, onOpen, onRemove, limit }: His
                 onClick={() => onRemove(e.id)}
                 aria-label={t('history.removeNamed', { name: entryTitle(e, t('doc.untitled')) })}
                 title={t('history.remove')}
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-muted opacity-0 transition-opacity hover:text-red-600 focus-visible:opacity-100 group-hover/item:opacity-100 dark:text-dark-ink-muted dark:hover:text-red-400"
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded p-1 text-ink-muted opacity-0 transition-opacity hover:text-red-600 focus-visible:opacity-100 group-hover/item:opacity-100 pointer-coarse:p-2 pointer-coarse:opacity-100 dark:text-dark-ink-muted dark:hover:text-red-400"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
