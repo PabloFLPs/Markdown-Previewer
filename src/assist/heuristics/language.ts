@@ -1,4 +1,5 @@
 import type { Language } from '../questions.ts'
+import { parseJsonLike } from '../json.ts'
 
 type Rule = [RegExp, number]
 
@@ -176,17 +177,6 @@ const NEGATIVE: Partial<Record<Language, Rule[]>> = {
   yaml: [[/[;{}()]\s*$/m, -2], [/^\s*(def|class|if|for)\s/m, -3]],
 }
 
-function isValidJson(text: string): boolean {
-  const t = text.trim()
-  if (!/^[{[]/.test(t)) return false
-  try {
-    JSON.parse(t)
-    return true
-  } catch {
-    return false
-  }
-}
-
 function codeLikeness(text: string): number {
   const symbols = (text.match(/[{}()[\];=<>$:]/g) ?? []).length
   const words = (text.match(/[A-Za-zÀ-ÿ]+/g) ?? []).length
@@ -205,7 +195,9 @@ export function classifyLanguage(code: string): Record<Language, number> {
   }
 
   // Structural overrides.
-  if (isValidJson(code)) scores.json += 6
+  // JSON (strict or with comments / trailing commas, as in config files).
+  const json = parseJsonLike(code)
+  if (json) scores.json += json.strict ? 6 : 5
   else scores.json = Math.min(scores.json, 1)
 
   // TS is a superset of JS: if TS-only evidence exists, it should win; if not, JS should.

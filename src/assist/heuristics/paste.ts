@@ -1,5 +1,6 @@
 import type { PasteKind } from '../questions.ts'
 import { classifyLanguage } from './language.ts'
+import { parseJsonLike } from '../json.ts'
 
 export function nonEmptyLines(text: string): string[] {
   return text.replace(/\r\n?/g, '\n').split('\n').filter((l) => l.trim() !== '')
@@ -54,18 +55,10 @@ const BULLET_RE = /^\s*([•·▪◦‣–—*+-]|\d{1,3}[.)]|[a-z][.)])\s+\S/
 export function classifyPaste(text: string): Record<PasteKind, number> {
   const lines = nonEmptyLines(text)
   const s: Record<PasteKind, number> = { prose: 1.5, table: 0, csv: 0, tsv: 0, list: 0, code: 0, json: 0 }
+  // JSON first — a minified single-line payload is still JSON.
+  const json = parseJsonLike(text)
+  if (json) return { ...s, json: json.strict ? 9 : 8, prose: 0 }
   if (lines.length < 2) return { ...s, prose: 5 }
-
-  // JSON
-  const t = text.trim()
-  if (/^[{[]/.test(t)) {
-    try {
-      JSON.parse(t)
-      s.json = 8
-    } catch {
-      s.json = 0.5
-    }
-  }
 
   // TSV
   const tabC = delimiterConsistency(lines, (l) => l.split('\t').length - 1)

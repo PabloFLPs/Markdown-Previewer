@@ -1,3 +1,5 @@
+import { parseJsonLike } from './json.ts'
+
 /**
  * Deterministic candidate detection. Pure functions, no model involved.
  * The engine only ever runs on what these return — never per keystroke.
@@ -86,8 +88,10 @@ export function findBareFences(text: string): BareFence[] {
 /* ---------------- F2: smart paste ---------------- */
 
 export function isPasteCandidate(text: string): boolean {
+  if (text.length > 50_000) return false
   const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
-  return lines.length >= 2 && text.length <= 50_000
+  // Single-line pastes only qualify when they are JSON (e.g. a minified API response).
+  return lines.length >= 2 || (lines.length === 1 && parseJsonLike(text) !== undefined)
 }
 
 /* ---------------- F3: structure intent ---------------- */

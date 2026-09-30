@@ -4,6 +4,7 @@ import { isPasteCandidate } from '../prefilter.ts'
 import { LANGUAGES, PASTE_KINDS, Q, type Language, type PasteKind } from '../questions.ts'
 import { alignedToTable, csvToTable, toCodeBlock, toList, tsvToTable } from '../convert.ts'
 import { hash } from './codeFence.ts'
+import { prettyJson } from '../json.ts'
 
 /** F2 — the paste already happened untouched; offer to convert the pasted range. */
 export async function suggestPasteConversion(
@@ -41,10 +42,14 @@ export async function suggestPasteConversion(
       insert = toList(pasted)
       label = 'Convert to Markdown list'
       break
-    case 'json':
-      insert = toCodeBlock(pasted, 'json')
-      label = 'Wrap in ```json code block'
+    case 'json': {
+      const pretty = prettyJson(pasted)
+      insert = toCodeBlock(pretty, 'json')
+      const formatted = pretty !== pasted.trim()
+      label = formatted ? 'Format JSON into a ```json code block' : 'Wrap in ```json code block'
+      if (formatted) msgKey = 'suggest.paste.jsonFormat'
       break
+    }
     case 'code': {
       const lang = await engine.choice<Language>(pasted, Q.fenceLanguage, LANGUAGES)
       const ok = passesGate(Object.values(lang.probs) as number[], 0.8, 0.2)
